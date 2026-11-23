@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-    <title><?= $title ?></title>
+    <title><?= esc($title) ?></title>
 
 
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
@@ -33,7 +33,7 @@
             <?php if (stripos($cs, "assets") !== false) : ?>
                 <link rel="stylesheet" href="<?= base_url($cs . '.css?ver=' . filemtime(FCPATH . $cs . ".css")) ?>" type="text/css">
             <?php else: ?>
-                <link rel="stylesheet" href="<?= $cs ?>" type="text/css">
+                <link rel="stylesheet" href="<?= esc($cs) ?>" type="text/css">
             <?php endif ?>
         <?php endforeach ?>
     <?php endif ?>
@@ -41,6 +41,7 @@
         var baseUrl = '<?= base_url() ?>'
     </script>
 
+    <meta name="csrf-token" content="<?= csrf_hash() ?>" data-name="<?= csrf_token() ?>" data-header="<?= csrf_header() ?>">
 </head>
 
 
@@ -55,6 +56,7 @@
 
     <!-- jQuery -->
     <script src="<?= base_url('assets/vendors/jquery/dist/jquery.min.js') ?>"></script>
+    <script src="<?= base_url('assets/custom/js/csrf.js') ?>"></script>
     <!-- Bootstrap -->
     <script src="<?= base_url('assets/vendors/bootstrap/dist/js/bootstrap.bundle.min.js') ?>"></script>
 
@@ -73,7 +75,7 @@
             <?php if (stripos($v, "assets") !== false) : ?>
                 <script src="<?= base_url($v . '.js?ver=' . filemtime(FCPATH . $v . ".js")) ?>"></script>
             <?php else : ?>
-                <script src="<?= $v ?>"></script>
+                <script src="<?= esc($v) ?>"></script>
             <?php endif ?>
         <?php endforeach ?>
     <?php endif ?>
@@ -82,9 +84,9 @@
     <?php if (!is_null($session->getFlashdata('alert'))): ?>
         <script>
             new PNotify({
-                title: '<?= $session->getFlashdata('alert')['msg'] ?>',
-                text: '<?= $session->getFlashdata('alert')['text'] ?>',
-                type: '<?= $session->getFlashdata('alert')['status'] ?>',
+                title: <?= json_encode((string) ($session->getFlashdata('alert')['msg'] ?? ''), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>,
+                text: <?= json_encode((string) ($session->getFlashdata('alert')['text'] ?? ''), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>,
+                type: <?= json_encode((string) ($session->getFlashdata('alert')['status'] ?? ''), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>,
                 styling: 'bootstrap3'
             });
         </script>

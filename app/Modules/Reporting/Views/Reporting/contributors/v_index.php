@@ -52,7 +52,7 @@
                         <select name="item[]" id="item" class="form-control select2" data-placeholder="--item Type--" multiple="multiple">
                             <option></option>
                             <?php foreach ($list_item as $val): ?>
-                                <option value="<?= $val->item_type_id; ?>"><?= $val->item_type_name; ?></option>
+                                <option value="<?= esc($val->item_type_id) ?>"><?= esc($val->item_type_name) ?></option>
                             <?php endforeach ?>
                         </select>
                     </div>
@@ -95,11 +95,11 @@
                     foreach ($contributor_report as $val): ?>
                         <tr>
                             <td><?= $i++; ?></td>
-                            <td><?= $val->title; ?></td>
-                            <td><?= $val->item_type_name; ?></td>
-                            <td><?= $val->topic; ?></td>
-                            <td><?= $val->contributor_name; ?></td>
-                            <td><?= $val->publish_year; ?></td>
+                            <td><?= esc($val->title) ?></td>
+                            <td><?= esc($val->item_type_name) ?></td>
+                            <td><?= esc($val->topic) ?></td>
+                            <td><?= esc($val->contributor_name) ?></td>
+                            <td><?= esc($val->publish_year) ?></td>
                         </tr>
                     <?php endforeach ?>
                 </tbody>

@@ -11,7 +11,7 @@
             </div>
             <div class="x_content">
                 <form name="mainForm" id="mainForm" class="form-horizontal form-label-left" method="post" action="/admin/modules/bibliography/sendmail.php?ajaxload=1" target="submitExec" enctype="multipart/form-data">
-                    <input type="hidden" name="csrf_token" value="db3e0e9f0900e6dff20189dfc94e613f32542d4e6f1931eccaeb243764a26e56">
+                    <?= csrf_field() ?>
                     <input type="hidden" name="form_name" value="mainForm">
 
                     <div class="form-group">

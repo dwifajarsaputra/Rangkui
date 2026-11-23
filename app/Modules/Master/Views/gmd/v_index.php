@@ -25,12 +25,12 @@
                         foreach ($data as $key => $value) : ?>
                             <tr>
                                 <td><?= $i++ ?></td>
-                                <td><?= $value->gmd_code ?></td>
-                                <td><?= $value->gmd_name ?></td>
-                                <td><?= $value->last_update ?></td>
+                                <td><?= esc($value->gmd_code) ?></td>
+                                <td><?= esc($value->gmd_name) ?></td>
+                                <td><?= esc($value->last_update) ?></td>
                                 <td>
-                                    <button type="button" class="btn btn-sm btn-info" onclick='showModal(<?= json_encode($value) ?>)'><i class="fa fa-pencil"></i></button>
-                                    <button type="button" class="btn btn-sm btn-danger" onclick="showConfirm(<?= $value->gmd_id ?>)"><i class="fa fa-trash"></i></button>
+                                    <button type="button" class="btn btn-sm btn-info" onclick='showModal(<?= json_encode($value, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>)'><i class="fa fa-pencil"></i></button>
+                                    <button type="button" class="btn btn-sm btn-danger" onclick="showConfirm(<?= esc($value->gmd_id) ?>)"><i class="fa fa-trash"></i></button>
                                 </td>
                             </tr>
                         <?php endforeach; ?>

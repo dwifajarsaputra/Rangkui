@@ -4,6 +4,7 @@ namespace App\Modules\Membership\Controllers;
 
 use App\Modules\Membership\Models\MembershipModel;
 use App\Controllers\BaseController;
+use App\Libraries\SecureUpload;
 use datetime;
 
 class KeanggotaanController extends BaseController
@@ -73,88 +74,93 @@ class KeanggotaanController extends BaseController
 
         _render($view, $title, $content, $js);
     }
+    /**
+     * Field formulir anggota yang boleh disimpan (whitelist; menggantikan extract($_POST)).
+     */
+    private const MEMBER_FIELDS = [
+        'member_id', 'member_name', 'birth_date', 'inst_name', 'member_since_date',
+        'member_type_id', 'register_date', 'pin', 'expire_date', 'postal_code', 'gender',
+        'member_address', 'member_mail_address', 'member_phone', 'member_fax',
+        'member_notes', 'member_email',
+    ];
+
+    private function _memberData(): array
+    {
+        $data = [];
+        foreach (self::MEMBER_FIELDS as $field) {
+            $value        = $this->request->getPost($field);
+            $data[$field] = is_string($value) ? trim($value) : null;
+        }
+        $data['is_pending'] = empty($this->request->getPost('is_pending')) ? 0 : 1;
+        $data['gender']     = (int) ($data['gender'] ?? 0);
+
+        // Kolom tanggal kosong disimpan sebagai NULL agar tidak memicu error strict mode MySQL.
+        foreach (['birth_date', 'member_since_date', 'register_date', 'expire_date'] as $dateField) {
+            if ($data[$dateField] === '') {
+                $data[$dateField] = null;
+            }
+        }
+
+        return $data;
+    }
+
+    private function _memberRules(): array
+    {
+        $rules = [
+            'member_id'      => 'required|max_length[20]',
+            'member_name'    => 'required|max_length[100]',
+            'member_type_id' => 'required|is_natural_no_zero',
+            'member_email'   => 'permit_empty|valid_email',
+            'expire_date'    => 'permit_empty|valid_date[Y-m-d]',
+            'mPasswd'        => 'permit_empty|min_length[6]',
+        ];
+        // Konfirmasi password hanya diperiksa bila password diisi.
+        if ((string) $this->request->getPost('mPasswd') !== '') {
+            $rules['memberPasswd2'] = 'matches[mPasswd]';
+        }
+
+        return $rules;
+    }
+
+    private function _storeMemberImage(): ?string
+    {
+        $uploader = new SecureUpload();
+        $image    = $uploader->storeImage($this->request->getFile('member_image'), FCPATH . 'uploads/images/persons', 'member', 1024);
+        if ($uploader->getError() !== null) {
+            slim_alert('error', $uploader->getError());
+        }
+
+        return $image;
+    }
+
     public function save()
     {
-        extract($this->input->getPost());
-        $currentDate = new DateTime();
-        $currentDate->modify('+1 year');
-        $rules = [
-            'image' => [
-                'label' => 'Image File',
-                'rules' => 'if_exist|is_image[image]'
-                    . '|is_image[image]'
-                    . '|mime_in[image,image/jpg,image/jpeg,image/png,image/webp]'
-                    . '|max_size[image,1024]'
-                    . '|max_dims[image,4000,4000]',
-            ]
-        ];
-
-        if (! $this->validate($rules)) {
-            return redirect()->back()->withInput()->with('validation', \Config\Services::validation());
-        } else {
-            if (isset($extend)) {
-
-                $expire_date = $currentDate->format('Y-m-d');
-            }
-            $user        = 'var';
-            if (!is_null($expire_date) || $expire_date = '') {
-                $expire_date = $currentDate->format('Y-m-d');
-            }
-            $filename    = (string) $_FILES['member_image']['name'];
-            $configImage = $this->_configBerkas($filename, $user);
-            $imageFile   = $this->request->getFile('member_image');
-            $image = '';
-            if ($imageFile->isValid() && !$imageFile->hasMoved()) {
-                if (!is_dir($configImage['upload_path'])) {
-                    mkdir($configImage['upload_path'], 0755, true);
-                }
-                $image = $configImage['file_name'];
-                $imageFile->move($configImage['upload_path'], $image);
-                $msg = 'sukses';
-            } else {
-                $msg = 'gagal';
-                if (!empty($filename)) {
-                    slim_alert('Simpan gambar gagal, silahkan upload ulang.', 'error');
-                }
-            }
+        if (! $this->validate($this->_memberRules())) {
+            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
         }
 
-        $encryptedPassword = password_hash($mPasswd, PASSWORD_BCRYPT, $this->options);
-        $data = [
-            'member_id'           => $member_id, // Using member_id from form input
-            'member_name'         => $member_name,
-            'birth_date'          => $birth_date,
-            'inst_name'           => $inst_name,
-            'member_since_date'   => $member_since_date,
-            'member_type_id'      => $member_type_id,
-            'register_date'       => $register_date,
-            'pin'                 => $pin,
-            'is_pending'          => isset($is_pending[0]) ?? 0,
-            'expire_date'         => $expire_date,
-            'postal_code'         => $postal_code,
-            'gender'              => $gender,
-            'member_address'      => $member_address,
-            'member_mail_address' => $member_mail_address,
-            'member_phone'        => $member_phone,
-            'member_fax'          => $member_fax,
-            'member_notes'        => $member_notes,
-            'mpasswd'             => $encryptedPassword,
-            'member_email'        => $member_email,
-        ];
-        if (!empty($image)) {
+        $data = $this->_memberData();
+
+        // Perpanjang otomatis 1 tahun bila dicentang, atau bila tanggal kedaluwarsa tidak diisi.
+        if (! empty($this->request->getPost('extend')) || empty($data['expire_date'])) {
+            $data['expire_date'] = (new \DateTime('+1 year'))->format('Y-m-d');
+        }
+
+        $password = (string) $this->request->getPost('mPasswd');
+        if ($password !== '') {
+            $data['mpasswd'] = password_hash($password, PASSWORD_BCRYPT, $this->options);
+        }
+
+        $image = $this->_storeMemberImage();
+        if ($image !== null) {
             $data['member_image'] = $image;
         }
-        $db       = \Config\Database::connect();
+
         $member = new MembershipModel();
-        $member->insertMember($data);
-
-
-        if ($member->transStatus() === false) {
-            $member->transRollback();
-            slim_alert('error', "Gagal Menambah Membership");
+        if ($member->insertMember($data)) {
+            slim_alert('success', 'Berhasil Menambah Membership');
         } else {
-            $member->transCommit();
-            slim_alert('success', "Berhasil Menambah Membership");
+            slim_alert('error', 'Gagal Menambah Membership');
         }
 
         return redirect()->to('membership/');
@@ -162,87 +168,42 @@ class KeanggotaanController extends BaseController
 
     public function update()
     {
-        extract($this->input->getPost());
+        $memberM            = new MembershipModel();
+        $original_member_id = (string) $this->request->getPost('original_member_id');
+        $member             = $memberM->find($original_member_id);
 
-        $memberM        = new membershipModel();
-        $original_member_id = $this->request->getPost('original_member_id');
-        $member         = $memberM->find($original_member_id);
-        if (!empty($member)) {
-            $this->db->transBegin();
-            $data = [
-                'member_id'           => $member_id, // Allow updating member_id if changed
-                'member_name'         => $member_name,
-                'birth_date'          => $birth_date,
-                'inst_name'           => $inst_name,
-                'member_since_date'   => $member_since_date,
-                'member_type_id'      => $member_type_id,
-                'register_date'       => $register_date,
-                'pin'                 => $pin,
-                'expire_date'         => $expire_date,
-                'is_pending'          => isset($is_pending[0]) ?? 0,
-                'postal_code'         => $postal_code,
-                'gender'              => $gender,
-                'member_address'      => $member_address,
-                'member_mail_address' => $member_mail_address,
-                'member_phone'        => $member_phone,
-                'member_fax'          => $member_fax,
-                'member_notes'        => $member_notes,
-                'member_email'        => $member_email,
-            ];
-            if (!empty($mPasswd)) {
-                $encryptedPassword = password_hash($mPasswd, PASSWORD_BCRYPT, $this->options);
-                $data['mpasswd'] = $encryptedPassword;
-            }
+        if (empty($member)) {
+            slim_alert('error', 'Anggota tidak ditemukan');
 
-            $rules = [
-                'member_name'       => 'required',
-                'member_type_id'    => 'required',
-                'pin'               => 'required',
-                'member_email'      => 'required',
-                'image'             =>
-                [
-                    'label' => 'Image File',
-                    'rules' => 'if_exist|is_image[image]'
-                        . '|is_image[image]'
-                        . '|mime_in[image,image/jpg,image/jpeg,image/png,image/webp]'
-                        . '|max_size[image,500]'
-                        . '|max_dims[image,4000,4000]',
-                ],
-            ];
-
-            if (!$this->validate($rules)) {
-                return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
-            } else {
-
-                $image        = '';
-                $user         = "var";
-                $filename     = (string) $_FILES['member_image']['name'];
-                $configImage  = $this->_configBerkas($filename, $user);
-                $imageFile    = $this->request->getFile('member_image');
-
-                if ($imageFile->isValid() && !$imageFile->hasMoved()) {
-                    if (!is_dir($configImage['upload_path'])) {
-                        mkdir($configImage['upload_path'], 0755, true);
-                    }
-                    $image = $configImage['file_name'];
-                    $imageFile->move($configImage['upload_path'], $image);
-                }
-
-                if (!empty($image)) {
-                    $data['member_image'] = $image;
-                }
-                $memberM->set($data);
-                $memberM->where('member_id', $original_member_id);
-                $result       =  $memberM->update();
-                if ($result) {
-                    slim_alert('Berhasil Ubah Dokumen', 'Success');
-                } else {
-                    $error = $memberM->errors();
-                    log_message('error', reset($error));
-                    slim_alert('Gagal Ubah Dokumen', 'Error');
-                }
-            }
+            return redirect()->to('/membership/');
         }
+
+        if (! $this->validate($this->_memberRules())) {
+            return redirect()->back()->withInput()->with('errors', $this->validator->getErrors());
+        }
+
+        $data     = $this->_memberData();
+        $password = (string) $this->request->getPost('mPasswd');
+        if ($password !== '') {
+            $data['mpasswd'] = password_hash($password, PASSWORD_BCRYPT, $this->options);
+        }
+
+        $image = $this->_storeMemberImage();
+        if ($image !== null) {
+            $data['member_image'] = $image;
+        }
+
+        $result = $this->db->table('member')
+            ->where('member_id', $original_member_id)
+            ->update($data + ['last_update' => date('Y-m-d H:i:s')]);
+
+        if ($result) {
+            slim_alert('success', 'Berhasil Ubah Anggota');
+        } else {
+            log_message('error', json_encode($this->db->error()));
+            slim_alert('error', 'Gagal Ubah Anggota');
+        }
+
         return redirect()->to('/membership/');
     }
 
@@ -265,41 +226,32 @@ class KeanggotaanController extends BaseController
 
     public function updateExp()
     {
-        extract($this->input->getPost());
-        $currentDate    = new \DateTime();
+        $exp_date       = (string) $this->request->getPost('exp_date');
+        $member_id      = (string) $this->request->getPost('member_id');
         $expirationDate = \DateTime::createFromFormat('Y-m-d', $exp_date);
-        $memberM        = new membershipModel();
+        $memberM        = new MembershipModel();
         $member         = $memberM->find($member_id);
-        $now            = date("Y-m-d H:i:s");
 
-        // Cek apakah tanggal expired lebih kecil dari tanggal sekarang
-        if ($expirationDate < $currentDate) {
-            // Redirect kembali dengan membawa data untuk menampilkan modal
-            slim_alert('error', "Tanggal tidak valid.");
+        if ($expirationDate === false || $expirationDate < new \DateTime('today')) {
+            slim_alert('error', 'Tanggal tidak valid.');
+
             return redirect()->to('membership/xmember')->with('showModal', 'myModal');
         }
 
-        if (!empty($member)) {
-            $this->db->transBegin();
-            $data = [
-                'expire_date' => $exp_date,
-                'last_update' => $now,
-            ];
-            $memberM->set($data);
-            $memberM->where('member_id', $member_id);
-            $memberM->update();
+        if (empty($member)) {
+            slim_alert('error', 'Anggota tidak ditemukan');
 
-            if ($this->db->transStatus() === false) {
-                $this->db->transRollback();
-                slim_alert('error', "Gagal Mengubah {$member_name}");
-            } else {
-                $this->db->transCommit();
-                slim_alert('success', "Berhasil Mengubah {$member_name}");
-            }
+            return redirect()->to('membership/xmember');
         }
 
+        $ok = $this->db->table('member')
+            ->where('member_id', $member_id)
+            ->update(['expire_date' => $exp_date, 'last_update' => date('Y-m-d H:i:s')]);
 
-        return redirect()->to("membership/xmember");
+        $name = is_object($member) ? $member->member_name : ($member['member_name'] ?? $member_id);
+        slim_alert($ok ? 'success' : 'error', ($ok ? 'Berhasil Mengubah ' : 'Gagal Mengubah ') . $name);
+
+        return redirect()->to('membership/xmember');
     }
 
     public function delete()
@@ -324,38 +276,5 @@ class KeanggotaanController extends BaseController
         }
         
         return redirect()->to('membership/');
-    }
-    private function _configBerkas($file, $user, $ket = null, $i = null)
-    {
-        if (!is_dir('./uploads/images/persons/' . $user)) {
-            mkdir('./uploads/images/persons/' . $user, 0777, TRUE);
-        }
-        if (!is_null($ket)) {
-            if (!is_dir('./uploads/images/persons/')) {
-                mkdir('./uploads/images/persons/', 0777, TRUE);
-            }
-        }
-
-        $index = '';
-        if (!is_null($i)) {
-            if ($i > 0) {
-                $index = $i;
-            }
-        }
-
-        $config = array();
-        $ext = pathinfo($file, PATHINFO_EXTENSION);
-        if (!is_null($ket)) {
-            $save = 'member_' . $user . '_' . $ket . '-' . $this->datetime . $index . '.' . $ext;
-            $config['upload_path']   = './uploads/images/persons/'  . $ket;
-        } else {
-            $save = 'member_' . $user . '-' . $this->datetime . $index . '.' . $ext;
-            $config['upload_path']   = './uploads/images/persons/';
-        }
-        $config['allowed_types'] = 'png|jpg|jpeg|pdf';
-        $config['file_name']     = $save;
-        $config['max_size']      = '800';
-
-        return $config;
     }
 }

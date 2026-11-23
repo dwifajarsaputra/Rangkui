@@ -21,7 +21,7 @@
                     <select id="iconSelect" name="icon" style="width: 200px;" class="form-control-sm" data-placeholder="--PIlih Icon Modul--">
                         <option></option>
                         <?php foreach ($list_icon as $key => $val): ?>
-                            <option value="<?= $val->class_name; ?>"><?= $val->icon_name; ?></option>
+                            <option value="<?= esc($val->class_name) ?>"><?= esc($val->icon_name) ?></option>
                         <?php endforeach ?>
                     </select>
                     <span class="icon-preview" id="iconPreview"></span>

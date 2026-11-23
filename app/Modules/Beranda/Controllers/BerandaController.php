@@ -24,12 +24,10 @@ class BerandaController extends BaseController
     }
     public function detail($id)
     {
-        $id = slim_decrypt($id);
+        $id = (int) slim_decrypt($id);
 
-        extract($this->input->getGet());
-
-        if (isset($p) && $p == "show_detail") {
-            return $this->_showDetail($id, $inXML);
+        if ($this->request->getGet('p') === 'show_detail') {
+            return $this->_showDetail($id, filter_var($this->request->getGet('inXML'), FILTER_VALIDATE_BOOLEAN));
         } else {
             $loadModel = new BerandaModel();
             $css       = ["assets/custom/css/modules/beranda/beranda"];
@@ -102,12 +100,12 @@ class BerandaController extends BaseController
                     $name = $modsNode->addChild('name');
                     $name->addAttribute('type', $sysConf->authority_type[$author->authority_type]);
                     $name->addAttribute('authority', $author->auth_list);
-                    $name->addChild('namePart', $author->author_name);
+                    $name->addChild('namePart', $this->_xmlText($author->author_name));
 
                     // role
                     $role = $name->addChild('role');
                     $role->addAttribute('type', 'text');
-                    $role->addChild('roleTerm', $sysConf->authority_level[$author->level]);
+                    $role->addChild('roleTerm', $this->_xmlText($sysConf->authority_level[$author->level]));
                 }
             }
 
@@ -118,12 +116,12 @@ class BerandaController extends BaseController
                     $name = $modsNode->addChild('name');
                     $name->addAttribute('type', $sysConf->supervisor_type[$spv->supervisor_type]);
                     $name->addAttribute('authority', $spv->supervisor_list);
-                    $name->addChild('namePart', $spv->supervisor_name);
+                    $name->addChild('namePart', $this->_xmlText($spv->supervisor_name));
 
                     // role
                     $role = $name->addChild('role');
                     $role->addAttribute('type', 'text');
-                    $role->addChild('roleTerm', $sysConf->authority_level_supervisor[$spv->level]);
+                    $role->addChild('roleTerm', $this->_xmlText($sysConf->authority_level_supervisor[$spv->level]));
                 }
             }
 
@@ -133,12 +131,12 @@ class BerandaController extends BaseController
                 foreach ($examiners as $key => $ex) {
                     $name = $modsNode->addChild('name');
                     $name->addAttribute('type', $sysConf->examiner_type[$ex->examiner_type]);
-                    $name->addChild('namePart', $ex->examiner_name);
+                    $name->addChild('namePart', $this->_xmlText($ex->examiner_name));
 
                     // role
                     $role = $name->addChild('role');
                     $role->addAttribute('type', 'text');
-                    $role->addChild('roleTerm', $sysConf->authority_level_examiner[$ex->level]);
+                    $role->addChild('roleTerm', $this->_xmlText($sysConf->authority_level_examiner[$ex->level]));
                 }
             }
 
@@ -148,69 +146,69 @@ class BerandaController extends BaseController
                 foreach ($contributors as $key => $contributor) {
                     $name = $modsNode->addChild('name');
                     $name->addAttribute('type', $sysConf->contributor_type[$contributor->contributor_type]);
-                    $name->addChild('namePart', $contributor->contributor_name);
+                    $name->addChild('namePart', $this->_xmlText($contributor->contributor_name));
 
                     // role
                     $role = $name->addChild('role');
                     $role->addAttribute('type', 'text');
-                    $role->addChild('roleTerm', $sysConf->authority_level_contributor[$contributor->level]);
+                    $role->addChild('roleTerm', $this->_xmlText($sysConf->authority_level_contributor[$contributor->level]));
                 }
             }
 
-            // $modsNode->addChild('< manuscript="yes" collection="yes" />', 'mixed material');
-            $typeResource = $modsNode->addChild('typeOfResource', "mixed material");
+            // $modsNode->addChild('< manuscript="yes" collection="yes" />', $this->_xmlText('mixed material'));
+            $typeResource = $modsNode->addChild('typeOfResource', $this->_xmlText("mixed material"));
             $typeResource->addAttribute("manuscript", "yes");
             $typeResource->addAttribute("collection", "yes");
 
-            $marcgt = $modsNode->addChild("genre", "bibliography");
+            $marcgt = $modsNode->addChild("genre", $this->_xmlText("bibliography"));
             $marcgt->addAttribute("authority", "marcgt");
 
             // imprint/publication data
             $originInfo = $modsNode->addChild('originInfo');
 
             $place = $originInfo->addChild('place');
-            $place->addChild('placeTerm', $data['publish_place']);
+            $place->addChild('placeTerm', $this->_xmlText($data['publish_place']));
 
-            $originInfo->addChild('publisher', $data['publisher_name']);
-            $originInfo->addChild('dateIssued', $data['publish_year']);
+            $originInfo->addChild('publisher', $this->_xmlText($data['publisher_name']));
+            $originInfo->addChild('dateIssued', $this->_xmlText($data['publish_year']));
 
             $freq = (int) $data['frequency'];
             if ($freq > 0) {
-                $originInfo->addChild('dateIssued', $data['frequency']);
+                $originInfo->addChild('dateIssued', $this->_xmlText($data['frequency']));
             } else {
-                $originInfo->addChild('dateIssued', 'monographic');
+                $originInfo->addChild('dateIssued', $this->_xmlText('monographic'));
             }
 
-            $originInfo->addChild('edition', $data['edition']);
+            $originInfo->addChild('edition', $this->_xmlText($data['edition']));
 
             // language
             $lang = $modsNode->addChild('language');
-            $lang->addChild('languageTerm', $data['language_id']);
-            $lang->addChild('languageTerm', $data['language_name']);
+            $lang->addChild('languageTerm', $this->_xmlText($data['language_id']));
+            $lang->addChild('languageTerm', $this->_xmlText($data['language_name']));
 
             // item type
             $item = $modsNode->addChild('itemType');
 
-            $code = $item->addChild('itemTypeTerm', $data['item_type_code']);
+            $code = $item->addChild('itemTypeTerm', $this->_xmlText($data['item_type_code']));
             $code->addAttribute('type', 'code');
 
-            $text = $item->addChild('itemTypeTerm', $data['item_type_name']);
+            $text = $item->addChild('itemTypeTerm', $this->_xmlText($data['item_type_name']));
             $text->addAttribute('type', 'text');
 
             //copyright
             $copy = $modsNode->addChild('copyright');
-            $code = $copy->addChild('copyrightTerm ', $data['copyright_id']);
+            $code = $copy->addChild('copyrightTerm', $this->_xmlText($data['copyright_id']));
             $code->addAttribute('type', 'code');
 
-            $text = $copy->addChild('copyrightTerm ', $data['copyright_name']);
+            $text = $copy->addChild('copyrightTerm', $this->_xmlText($data['copyright_name']));
             $text->addAttribute('type', 'text');
 
             // Physical Description/Collation
             $physical = $modsNode->addChild('physicalDescription');
-            $form = $physical->addChild('form', $data['gmd_name']);
+            $form = $physical->addChild('form', $this->_xmlText($data['gmd_name']));
             $form->addAttribute('authority', 'gmd');
 
-            $exten = $physical->addChild('extent', $data['collation']);
+            $exten = $physical->addChild('extent', $this->_xmlText($data['collation']));
 
             if (!is_null($data['series_title']) && $data['series_title'] !== "") {
 
@@ -218,11 +216,11 @@ class BerandaController extends BaseController
                 $relatedItem->addAttribute('type', 'series');
 
                 $titleInfo = $relatedItem->addChild('titleInfo');
-                $titleInfo->addChild('title', $data['series_title']);
+                $titleInfo->addChild('title', $this->_xmlText($data['series_title']));
             }
 
             // note
-            $note = $modsNode->addChild('note', $data['notes']);
+            $note = $modsNode->addChild('note', $this->_xmlText($data['notes']));
             if ($_title_statement_resp != "") {
                 $nc = $note->addChild('note');
                 $this->addCData($nc, $_title_statement_resp);
@@ -238,25 +236,25 @@ class BerandaController extends BaseController
                     $sub = $modsNode->addChild('subject');
 
                     $sub->addAttribute('authority', $topic->auth_list);
-                    $sub->addChild($subject_type, $topic->topic);
+                    $sub->addChild($subject_type, $this->_xmlText($topic->topic));
                 }
             }
 
             // classification
-            $modsNode->addChild('classification', $data['classification']);
-            $modsNode->addChild('ministry', $data['code_ministry']);
-            $modsNode->addChild('studentID', $data['student_id']);
+            $modsNode->addChild('classification', $this->_xmlText($data['classification']));
+            $modsNode->addChild('ministry', $this->_xmlText($data['code_ministry']));
+            $modsNode->addChild('studentID', $this->_xmlText($data['student_id']));
 
-            $identifier = $modsNode->addChild('identifier', str_replace(array('-', ' '), '', $data['isbn_issn']));
+            $identifier = $modsNode->addChild('identifier', $this->_xmlText(str_replace(array('-', ' '), '', $data['isbn_issn'])));
             $identifier->addAttribute('type', 'isbn');
 
-            $modsNode->addChild('departementID', $data['departement']);
-            $modsNode->addChild('urlCrossref', $data['url_crossref']);
+            $modsNode->addChild('departementID', $this->_xmlText($data['departement']));
+            $modsNode->addChild('urlCrossref', $this->_xmlText($data['url_crossref']));
 
 
             $loc = $modsNode->addChild('location');
-            $loc->addChild('physicalLocation', $sysConf->library['name'] . ' ' . $sysConf->library['subname']);
-            $loc->addChild('shelfLocator', $data['call_number']);
+            $loc->addChild('physicalLocation', $this->_xmlText($sysConf->library['name'] . ' ' . $sysConf->library['subname']));
+            $loc->addChild('shelfLocator', $this->_xmlText($data['call_number']));
 
 
 
@@ -269,11 +267,11 @@ class BerandaController extends BaseController
                 foreach ($list as $key => $val) {
                     $cpi = $hold->addChild('copyInformation');
 
-                    $num = $cpi->addChild('numerationAndChronology', $val['item_code']);
+                    $num = $cpi->addChild('numerationAndChronology', $this->_xmlText($val['item_code']));
                     $num->addAttribute('type', '1');
 
-                    $cpi->addChild('sublocation', $val['location_name'] . ($val['site'] ? ' (' . $val['site'] . ')' : ''));
-                    $cpi->addChild('shelfLocator', $val['call_number']);
+                    $cpi->addChild('sublocation', $this->_xmlText($val['location_name'] . ($val['site'] ? ' (' . $val['site'] . ')' : '')));
+                    $cpi->addChild('shelfLocator', $this->_xmlText($val['call_number']));
                 }
             }
 
@@ -318,7 +316,7 @@ class BerandaController extends BaseController
             $recordChangeDate->addAttribute('encoding', 'w3cdtf');
             $this->addCData($recordChangeDate, $data['last_update']);
 
-            $recordInfo->addChild('recordOrigin', 'machine generated');
+            $recordInfo->addChild('recordOrigin', $this->_xmlText('machine generated'));
 
 
 
@@ -327,6 +325,14 @@ class BerandaController extends BaseController
     }
 
     // Function to send XML response
+    /**
+     * SimpleXMLElement::addChild() tidak meng-escape "&" sehingga nama seperti "A & B" membuat XML gagal dibuat.
+     */
+    private function _xmlText($value): string
+    {
+        return htmlspecialchars((string) $value, ENT_XML1 | ENT_QUOTES, 'UTF-8');
+    }
+
     private function respondXML(SimpleXMLElement $xml)
     {
         return $this->response
@@ -388,26 +394,79 @@ class BerandaController extends BaseController
         $js        = [];
         $view      = "v_search";
         $title     = "DIFOSS";
-        if (!is_null($this->input->getGet('s'))) {
-            $data = $loadModel->search_biblio($this->input->getGet('s'));
+        $query     = $this->request->getGet();
+
+        if (isset($query['s'])) {
+            $data = $loadModel->search_biblio(is_string($query['s']) ? $query['s'] : '');
         } else {
-            $data = $loadModel->search_biblio_specific(array_key_first($this->input->getGet()), $this->input->getGet(array_key_first($this->input->getGet())));
+            // Pencarian spesifik: ?<kolom>=<kata kunci>, kolom divalidasi dengan whitelist.
+            $data = [];
+            foreach ($query as $column => $value) {
+                if (is_string($value) && $loadModel->isSearchableColumn((string) $column)) {
+                    $data = $loadModel->search_biblio_specific((string) $column, $value);
+                    break;
+                }
+            }
         }
 
         $content['data'] = $data;
         _renderView($view, $title, $content, $js, $css);
     }
-    public function counting()
+
+    /**
+     * Unduh/lihat lampiran: memeriksa hak akses, mencatat statistik unduhan, lalu
+     * menyajikan berkas dari penyimpanan (berkas tidak lagi diakses langsung via URL publik).
+     */
+    public function file($biblioId, $fileId)
     {
-        $dec = explode('|', base64_decode($this->input->getPost('file')));
+        $biblioId = (int) $biblioId;
+        $fileId   = (int) $fileId;
+        $isStaff  = $this->session->has('user_id');
 
-        $data = [
-            'biblio_id' => $dec[0],
-            'file_id'   => $dec[1],
-        ];
+        $row = $this->db->table('biblio_attachment ba')
+            ->select('ba.access_type, ba.access_limit, f.file_name, f.file_url, f.mime_type, f.file_title, b.opac_hide')
+            ->join('files f', 'f.file_id = ba.file_id')
+            ->join('biblio b', 'b.biblio_id = ba.biblio_id')
+            ->where('ba.biblio_id', $biblioId)
+            ->where('ba.file_id', $fileId)
+            ->get()
+            ->getRow();
 
-        $this->db->table('biblio_count')->insert($data);
+        if ($row === null || (! $isStaff && (int) $row->opac_hide === 1)) {
+            throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
+        }
 
-        echo json_encode($dec[2]);
+        if (! $isStaff) {
+            if ($row->access_type !== 'public') {
+                throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
+            }
+            if (! empty($row->access_limit)) {
+                slim_alert('warning', 'Silakan login untuk mengakses lampiran ini.');
+
+                return redirect()->to('login');
+            }
+            $this->db->table('biblio_count')->insert(['biblio_id' => $biblioId, 'file_id' => $fileId]);
+        }
+
+        $name = basename((string) $row->file_name);
+        foreach ([WRITEPATH . 'uploads/repository/', FCPATH . 'uploads/repository/'] as $dir) {
+            $path = $dir . $name;
+            if ($name !== '' && is_file($path)) {
+                $download = $this->response->download($path, null)->setFileName($name);
+
+                if (strtolower(pathinfo($name, PATHINFO_EXTENSION)) === 'pdf') {
+                    return $download->setContentType('application/pdf')->inline();
+                }
+
+                return $download;
+            }
+        }
+
+        // Lampiran berupa tautan eksternal.
+        if (preg_match('#^https?://#i', (string) $row->file_url)) {
+            return redirect()->to($row->file_url);
+        }
+
+        throw \CodeIgniter\Exceptions\PageNotFoundException::forPageNotFound();
     }
 }

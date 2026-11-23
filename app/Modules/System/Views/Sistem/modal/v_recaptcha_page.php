@@ -14,7 +14,7 @@
                     <div class="form-group">
                         <label class="control-label col-md-3 col-sm-3 col-xs-12" for="publickey">Public Key</label>
                         <div class="col-md-9 col-sm-9 col-xs-12">
-                            <input type="text" id="publickey" name="publickey" class="form-control" value="<?= $publicKey; ?>" autofocus>
+                            <input type="text" id="publickey" name="publickey" class="form-control" value="<?= esc($publicKey) ?>" autofocus>
                         </div>
                     </div>
 
@@ -22,7 +22,7 @@
                     <div class="form-group">
                         <label class="control-label col-md-3 col-sm-3 col-xs-12" for="privatekey">Private Key</label>
                         <div class="col-md-9 col-sm-9 col-xs-12">
-                            <input type="text" id="privatekey" name="privatekey" class="form-control" value="<?= $privateKey; ?>">
+                            <input type="text" id="privatekey" name="privatekey" class="form-control" value="<?= esc($privateKey) ?>">
                         </div>
                     </div>
 

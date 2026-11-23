@@ -11,7 +11,7 @@
 
 <head>
     <meta charset="utf-8">
-    <title><?= $title ?></title>
+    <title><?= esc($title) ?></title>
     <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5">
     <meta name="description" content="This is meta description">
     <meta name="author" content="Themefisher">
@@ -41,7 +41,7 @@
             <?php if (stripos($cs, "assets") !== false) : ?>
                 <link rel="stylesheet" href="<?= base_url($cs . '.css?ver=' . filemtime(FCPATH . $cs . ".css")) ?>" type="text/css">
             <?php else: ?>
-                <link rel="stylesheet" href="<?= $cs ?>" type="text/css">
+                <link rel="stylesheet" href="<?= esc($cs) ?>" type="text/css">
             <?php endif ?>
         <?php endforeach ?>
     <?php endif ?>
@@ -50,6 +50,7 @@
     </script>
 
     <?php $session = session(); ?>
+    <meta name="csrf-token" content="<?= csrf_hash() ?>" data-name="<?= csrf_token() ?>" data-header="<?= csrf_header() ?>">
 </head>
 
 <body>
@@ -58,7 +59,7 @@
         <div class="container">
             <nav class="navbar navbar-expand-lg navbar-light px-0">
                 <a class="navbar-brand order-1 py-0" href="<?= base_url() ?>">
-                    <img loading="prelaod" decoding="async" class="img-fluid" src="<?= base_url('assets/images/Difoss-Header.png') ?>" alt="<?= $title ?>" style="height: 50px;">
+                    <img loading="prelaod" decoding="async" class="img-fluid" src="<?= base_url('assets/images/Difoss-Header.png') ?>" alt="<?= esc($title) ?>" style="height: 50px;">
                 </a>
                 <div class="navbar-actions order-3 ml-0 ml-md-4">
                     <button aria-label="navbar toggler" class="navbar-toggler border-0" type="button" data-toggle="collapse"
@@ -186,6 +187,7 @@
 
     <!-- # JS Plugins -->
     <script src="<?= base_url('assets/reporter/plugins/jquery/jquery.min.js') ?>"></script>
+    <script src="<?= base_url('assets/custom/js/csrf.js') ?>"></script>
     <script src="<?= base_url('assets/reporter/plugins/bootstrap/bootstrap.min.js') ?>"></script>
 
     <!-- Main Script -->
@@ -196,7 +198,7 @@
             <?php if (stripos($v, "assets") !== false) : ?>
                 <script src="<?= base_url($v . '.js?ver=' . filemtime(FCPATH . $v . ".js")) ?>"></script>
             <?php else : ?>
-                <script src="<?= $v ?>"></script>
+                <script src="<?= esc($v) ?>"></script>
             <?php endif ?>
         <?php endforeach ?>
     <?php endif ?>

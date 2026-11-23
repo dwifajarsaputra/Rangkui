@@ -2,6 +2,7 @@
 
     <section class="login_content">
         <form action="<?= base_url('login/auth') ?>" enctype="multipart/form-data" method="POST">
+            <?= csrf_field() ?>
             <h1>Login</h1>
             <?php if (session()->getFlashdata('error')): ?>
                 <div class="text-center text-danger">

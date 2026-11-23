@@ -22,36 +22,56 @@ class ProfileController extends BaseController
             ->get()
             ->getRow();
 
-        $data->social_media = unserialize($data->social_media);
+        if ($data === null) {
+            return redirect()->to('logout');
+        }
+        $social             = @unserialize((string) $data->social_media, ['allowed_classes' => ['stdClass']]);
+        $data->social_media = is_array($social) ? $social : [];
         $content['data'] = $data;
         _render($view, $title, $content, $js);
     }
     public function save()
     {
         $loadModel = new ProfileModel();
-        $now       = date('Y-m-d');
+        // Selalu gunakan ID dari sesi; jangan pernah dari input formulir (mencegah IDOR).
+        $uid = (int) $this->session->user_id;
 
-        $data['realname']     = $this->db->escapeString($this->input->getPost('realname'));
-        $data['email']        = $this->db->escapeString($this->input->getPost('email'));
-        $data['user_type']    = $this->db->escapeString($this->input->getPost('user_type'));
-        $data['social_media'] = serialize($this->input->getPost('social'));
-        $data['last_update']  = $now;
+        $rules = [
+            'realname' => 'required|max_length[100]',
+            'email'    => 'permit_empty|valid_email',
+            'passwd1'  => 'permit_empty|min_length[8]',
+        ];
+        if ((string) $this->request->getPost('passwd1') !== '') {
+            $rules['passwd2'] = 'matches[passwd1]';
+        }
+        if (! $this->validate($rules)) {
+            slim_alert('error', implode(' ', $this->validator->getErrors()));
 
-        if (!empty($this->input->getPost('passwd1')) && !is_null($this->input->getPost('passwd1'))) {
-            $data['passwd'] = password_hash($this->input->getPost('passwd1'), PASSWORD_BCRYPT);
+            return redirect()->to('profile');
         }
-        $this->db->transBegin();
-        $loadModel->update($this->input->getPost('user_id'), $data);
-        if ($this->db->transStatus() === false) {
-            $this->db->transRollback();
-            $log_message = "Update profile {$this->input->getPost('username')} success";
-            slim_alert('error', 'Data failed to save');
-        } else {
-            $this->db->transCommit();
-            $log_message = "Update profile {$this->input->getPost('username')} success";
-            slim_alert('success', 'Data successfully saved');
+
+        $social = $this->request->getPost('social');
+        $data   = [
+            'realname'     => (string) $this->request->getPost('realname'),
+            'email'        => (string) $this->request->getPost('email'),
+            'social_media' => serialize(is_array($social) ? array_map('strval', $social) : []),
+            'last_update'  => date('Y-m-d'),
+        ];
+        // user_type sengaja tidak bisa diubah dari halaman profil (mencegah eskalasi hak akses).
+
+        $passwd = (string) $this->request->getPost('passwd1');
+        if ($passwd !== '') {
+            $data['passwd'] = password_hash($passwd, PASSWORD_DEFAULT);
+            $this->session->remove('must_change_password');
         }
-        Services::writeLog(getTypeUser($this->session->user_type), $this->session->user_id, 'User', $log_message);
+
+        $ok          = $loadModel->update($uid, $data);
+        $log_message = 'Update profile ' . ($ok ? 'success' : 'failed') . " (user_id {$uid})";
+        slim_alert($ok ? 'success' : 'error', $ok ? 'Data successfully saved' : 'Data failed to save');
+        $this->session->set('name', $data['realname']);
+
+        Services::writeLog(getTypeUser($this->session->user_type), $uid, 'User', $log_message);
+
         return redirect()->to('profile');
     }
 }

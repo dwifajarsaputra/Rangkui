@@ -11,7 +11,7 @@
             });
             foreach ($sliders as $key => $val) : ?>
                 <div class="swiper-slide">
-                    <img src="<?= $directory . '/' . $val; ?>" alt="Sliders <?= $key ?>" loading="lazy"  style="width: 100%;">
+                    <img src="<?= esc($directory . '/' . $val); ?>" alt="Sliders <?= esc($key) ?>" loading="lazy"  style="width: 100%;">
                     <div class="swiper-lazy-preloader"></div>
                 </div>
             <?php endforeach ?>
@@ -36,7 +36,7 @@
                                     <div class="row">
                                         <div class="col-md-9">
                                             <ul class="post-meta">
-                                                <li> <a href="<?= base_url('beranda/detail/' . slim_encrypt($value->biblio_id)) ?>"><?= $value->gmd ?></a></li>
+                                                <li> <a href="<?= base_url('beranda/detail/' . slim_encrypt($value->biblio_id)) ?>"><?= esc($value->gmd) ?></a></li>
                                             </ul>
                                         </div>
                                         <div class="col-md-3">
@@ -46,8 +46,8 @@
                                         </div>
                                     </div>
                                     <div class="card-body pt-0 pb-0 pl-0 pr-0">
-                                        <h2 class="h2-title"><a class="post-title" href="<?= base_url('beranda/detail/' . slim_encrypt($value->biblio_id)) ?>"><?= character_limiter($value->title, 30) ?></a></h2>
-                                        <p class="card-text title-abstract text-justify"><?= character_limiter($value->notes, 130) ?></p>
+                                        <h2 class="h2-title"><a class="post-title" href="<?= base_url('beranda/detail/' . slim_encrypt($value->biblio_id)) ?>"><?= esc(character_limiter(strip_tags((string) $value->title), 30)) ?></a></h2>
+                                        <p class="card-text title-abstract text-justify"><?= esc(character_limiter(strip_tags((string) $value->notes), 130)) ?></p>
                                         <div class="content text-right"><a class="read-more-btn" href="<?= base_url('beranda/detail/' . slim_encrypt($value->biblio_id)) ?>">See Detail</a></div>
                                     </div>
                                 </div>

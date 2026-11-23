@@ -58,7 +58,7 @@ class ReportTitleController extends BaseController
     {
         $gmd = [];
         $coll_type = [];
-        extract($this->input->getPost());
+        extract(post_only(['author', 'classification', 'key', 'lang', 'loc', 'title', 'val']), EXTR_SKIP);
 
         $report = new ReportingModel();
 

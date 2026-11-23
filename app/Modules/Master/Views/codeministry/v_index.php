@@ -61,14 +61,14 @@
                         ?>
                             <tr>
                                 <td><?= $i++ ?></td>
-                                <td><?= $value->code_ministry ?></td>
-                                <td><?= $value->name_prodi ?></td>
-                                <td><?= $degree ?></td>
-                                <td><?= $value->university ?></td>
-                                <td><?= $value->last_update ?></td>
+                                <td><?= esc($value->code_ministry) ?></td>
+                                <td><?= esc($value->name_prodi) ?></td>
+                                <td><?= esc($degree) ?></td>
+                                <td><?= esc($value->university) ?></td>
+                                <td><?= esc($value->last_update) ?></td>
                                 <td>
-                                    <button type="button" class="btn btn-sm btn-info" onclick='showModal(<?= json_encode($value) ?>)'><i class="fa fa-pencil"></i></button>
-                                    <button type="button" class="btn btn-sm btn-danger" onclick="showConfirm('<?= $value->code_ministry ?>')"><i class="fa fa-trash"></i></button>
+                                    <button type="button" class="btn btn-sm btn-info" onclick='showModal(<?= json_encode($value, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>)'><i class="fa fa-pencil"></i></button>
+                                    <button type="button" class="btn btn-sm btn-danger" onclick="showConfirm('<?= esc($value->code_ministry) ?>')"><i class="fa fa-trash"></i></button>
                                 </td>
                             </tr>
                         <?php endforeach; ?>

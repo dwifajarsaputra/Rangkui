@@ -12,7 +12,7 @@
                 <select name="modul" id="modul" class="form-control select2" data-placeholder="-Pilih Modul-">
                     <option></option>
                     <?php foreach ($menu as $key => $val): ?>
-                        <option value="<?= $val->id; ?>"><?= formatString($val->title); ?></option>
+                        <option value="<?= esc($val->id) ?>"><?= esc(formatString($val->title)); ?></option>
                     <?php endforeach ?>
                 </select>
             </div>
@@ -39,11 +39,11 @@
                     <table class="table table-bordered">
                         <tbody>
                             <?php
-                            $list_sc = unserialize($sc->setting_value);
+                            $list_sc = unserialize($sc->setting_value, ['allowed_classes' => ['stdClass']]);
                             foreach ($list_sc as $k => $v): ?>
                                 <tr>
                                     <td>
-                                        <input type="checkbox" name="sub_list[]" value="<?= $v->id; ?>" checked> <?= $v->title; ?>
+                                        <input type="checkbox" name="sub_list[]" value="<?= esc($v->id) ?>" checked> <?= esc($v->title) ?>
                                     </td>
                                 </tr>
                             <?php endforeach ?>

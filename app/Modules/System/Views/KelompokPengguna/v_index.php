@@ -22,11 +22,11 @@
                     foreach ($list_group as $key => $val): ?>
                         <tr>
                             <td><?= $i++; ?></td>
-                            <td><?= $val->group_name; ?></td>
+                            <td><?= esc($val->group_name) ?></td>
                             <td><?= date("Y-m-d H:i:s", strtotime($val->last_update)); ?></td>
                             <td>
                                 <a href="<?= base_url('sistem/user-groups/edit/' . $val->group_id); ?>" class="btn btn-sm btn-info"><i class="fa fa-pencil"></i></a>
-                                <button type="button" class="btn btn-sm btn-danger" onclick="showConfirm(<?= $val->group_id ?>)"><i class="fa fa-trash"></i></button>
+                                <button type="button" class="btn btn-sm btn-danger" onclick="showConfirm(<?= esc($val->group_id) ?>)"><i class="fa fa-trash"></i></button>
                             </td>
 
                         </tr>

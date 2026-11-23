@@ -3,7 +3,7 @@
         <h2>Backup Data</h2>
         <ul class="nav navbar-right panel_toolbox">
             <li>
-                <button class="btn btn-sm btn-primary" onclick="moveTo('<?= base_url('sistem/backups/add') ?>')">
+                <button class="btn btn-sm btn-primary" onclick="postTo('<?= base_url('sistem/backups/add') ?>')">
                     <img src="<?= base_url('assets/custom/images/backup-solid.svg'); ?>" alt=""> Add New Backup
                 </button>
             </li>
@@ -34,9 +34,9 @@
                     ?>
                         <tr>
                             <td><?= $i++; ?></td>
-                            <td><?= $val->realname; ?></td>
-                            <td><?= $val->backup_time; ?></td>
-                            <td><?= $val->backup_file; ?></td>
+                            <td><?= esc($val->realname) ?></td>
+                            <td><?= esc($val->backup_time) ?></td>
+                            <td><?= esc($val->backup_file) ?></td>
                             <td>
                                 <a href="<?= base_url("sistem/backups/download/{$val->backup_log_id}") ?>" class="btn btn-sm btn-primary">
                                     <i class="fa fa-database" aria-hidden="true"></i> <?= formatSizeUnits($file_size); ?>

@@ -8,19 +8,19 @@
     <form name="frm-main" id="frm-main" class="form-horizontal form-label-left" method="post" action="<?= base_url('sistem/pustakawan/update'); ?>" enctype="multipart/form-data" onsubmit="return confirm('Are you sure you want to modify this data?')">
         <div class="x_content">
             <?= csrf_field(); ?>
-            <input type="hidden" name="w_id" value="<?= $list_pustakawan->user_id; ?>">
+            <input type="hidden" name="w_id" value="<?= esc($list_pustakawan->user_id) ?>">
             <!-- Form Fields -->
             <div class="form-group row">
                 <label for="username" class="control-label col-md-3 col-sm-3 col-xs-12">Nama Pengguna<span class="required">*</span></label>
                 <div class="col-md-6 col-sm-6 col-xs-12">
-                    <input type="text" id="username" name="username" required="required" class="form-control col-md-7 col-xs-12" value="<?= $list_pustakawan->username ?>">
+                    <input type="text" id="username" name="username" required="required" class="form-control col-md-7 col-xs-12" value="<?= esc($list_pustakawan->username) ?>">
                 </div>
             </div>
 
             <div class="form-group row">
                 <label for="realName" class="control-label col-md-3 col-sm-3 col-xs-12">Nama Asli<span class="required">*</span></label>
                 <div class="col-md-6 col-sm-6 col-xs-12">
-                    <input type="text" id="realName" name="realName" required="required" class="form-control col-md-7 col-xs-12" value="<?= $list_pustakawan->realname ?>">
+                    <input type="text" id="realName" name="realName" required="required" class="form-control col-md-7 col-xs-12" value="<?= esc($list_pustakawan->realname) ?>">
                 </div>
             </div>
 
@@ -39,13 +39,14 @@
             <div class="form-group row">
                 <label for="eMail" class="control-label col-md-3 col-sm-3 col-xs-12">E-mail</label>
                 <div class="col-md-6 col-sm-6 col-xs-12">
-                    <input type="email" id="eMail" name="eMail" class="form-control col-md-7 col-xs-12" value="<?= $list_pustakawan->email ?>">
+                    <input type="email" id="eMail" name="eMail" class="form-control col-md-7 col-xs-12" value="<?= esc($list_pustakawan->email) ?>">
                 </div>
             </div>
 
 
             <?php
-            $social = unserialize($list_pustakawan->social_media);
+            $social = @unserialize((string) $list_pustakawan->social_media, ['allowed_classes' => ['stdClass']]);
+            $social = is_array($social) ? $social : [];
             ?>
             <div class="form-group row">
                 <label class="control-label col-md-3 col-sm-3 col-xs-12">Media Sosial</label>
@@ -53,43 +54,43 @@
                 <!-- <input type="text" name="social[fb]" class="form-control mb-2" placeholder="Facebook"> -->
                 <div class="row col-md-9">
                     <div class="col-md-3 col-sm-6  form-group has-feedback">
-                        <input type="text" class="form-control has-feedback-left" id="inputFacebook" name="social[fb]" placeholder="Facebook" value="<?= $social['fb']; ?>">
+                        <input type="text" class="form-control has-feedback-left" id="inputFacebook" name="social[fb]" placeholder="Facebook" value="<?= esc($social['fb'] ?? '') ?>">
                         <span class="fa fa-facebook form-control-feedback left" aria-hidden="true"></span>
                     </div>
                     <div class="col-md-3 col-sm-6 form-group has-feedback">
-                        <input type="text" class="form-control has-feedback-left" id="inputTwitter" name="social[tw]" placeholder="Twitter" value="<?= $social['tw']; ?>">
+                        <input type="text" class="form-control has-feedback-left" id="inputTwitter" name="social[tw]" placeholder="Twitter" value="<?= esc($social['tw'] ?? '') ?>">
                         <span class="fa fa-twitter form-control-feedback left" aria-hidden="true"></span>
                     </div>
 
                     <div class="col-md-3 col-sm-6 form-group has-feedback">
-                        <input type="text" class="form-control has-feedback-left" id="inputLinkedIn" name="social[li]" placeholder="LinkedIn" value="<?= $social['li']; ?>">
+                        <input type="text" class="form-control has-feedback-left" id="inputLinkedIn" name="social[li]" placeholder="LinkedIn" value="<?= esc($social['li'] ?? '') ?>">
                         <span class="fa fa-linkedin form-control-feedback left" aria-hidden="true"></span>
                     </div>
                     <div class="col-md-3 col-sm-6 form-group has-feedback">
-                        <input type="text" class="form-control has-feedback-left" id="inputReddit" name="social[rd]" placeholder="Reddit" value="<?= $social['rd']; ?>">
+                        <input type="text" class="form-control has-feedback-left" id="inputReddit" name="social[rd]" placeholder="Reddit" value="<?= esc($social['rd'] ?? '') ?>">
                         <span class="fa fa-reddit form-control-feedback left" aria-hidden="true"></span>
                     </div>
                     <div class="col-md-3 col-sm-6 form-group has-feedback">
-                        <input type="text" class="form-control has-feedback-left" id="inputPinterest" name="social[pn]" placeholder="Pinterest" value="<?= $social['pn']; ?>">
+                        <input type="text" class="form-control has-feedback-left" id="inputPinterest" name="social[pn]" placeholder="Pinterest" value="<?= esc($social['pn'] ?? '') ?>">
                         <span class="fa fa-pinterest form-control-feedback left" aria-hidden="true"></span>
                     </div>
 
                     <div class="col-md-3 col-sm-6 form-group has-feedback">
-                        <input type="text" class="form-control has-feedback-left" id="inputGooglePlus" name="social[gp]" placeholder="Google Plus+" value="<?= $social['gp']; ?>">
+                        <input type="text" class="form-control has-feedback-left" id="inputGooglePlus" name="social[gp]" placeholder="Google Plus+" value="<?= esc($social['gp'] ?? '') ?>">
                         <span class="fa fa-google-plus form-control-feedback left" aria-hidden="true"></span>
                     </div>
                     <div class="col-md-3 col-sm-6 form-group has-feedback">
-                        <input type="text" class="form-control has-feedback-left" id="inputYouTube" name="social[yt]" placeholder="YouTube" value="<?= $social['yt']; ?>">
+                        <input type="text" class="form-control has-feedback-left" id="inputYouTube" name="social[yt]" placeholder="YouTube" value="<?= esc($social['yt'] ?? '') ?>">
                         <span class="fa fa-youtube form-control-feedback left" aria-hidden="true"></span>
                     </div>
 
                     <div class="col-md-3 col-sm-6 form-group has-feedback">
-                        <input type="text" class="form-control has-feedback-left" id="inputBlog" name="social[bl]" placeholder="Blog" value="<?= $social['bl']; ?>">
+                        <input type="text" class="form-control has-feedback-left" id="inputBlog" name="social[bl]" placeholder="Blog" value="<?= esc($social['bl'] ?? '') ?>">
                         <span class="fa fa-pencil form-control-feedback left" aria-hidden="true"></span>
                     </div>
 
                     <div class="col-md-3 col-sm-6 form-group has-feedback">
-                        <input type="text" class="form-control has-feedback-left" id="inputYahooMessenger" name="social[ym]" placeholder="Yahoo! Messenger" value="<?= $social['ym']; ?>">
+                        <input type="text" class="form-control has-feedback-left" id="inputYahooMessenger" name="social[ym]" placeholder="Yahoo! Messenger" value="<?= esc($social['ym'] ?? '') ?>">
                         <span class="fa fa-yahoo form-control-feedback left" aria-hidden="true"></span>
                     </div>
 
@@ -106,7 +107,7 @@
             </div>
 
             <?php
-            $groups = unserialize($list_pustakawan->groups)
+            $groups = unserialize($list_pustakawan->groups, ['allowed_classes' => ['stdClass']])
             ?>
             <div class="form-group row">
                 <label class="control-label col-md-3 col-sm-3 col-xs-12">Kelompok</label>

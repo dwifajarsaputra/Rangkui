@@ -35,8 +35,8 @@ class SystemController extends BaseController
         $lang      = $this->db->table('mst_language');
         $list_lang = $lang->get()->getResult();
 
-        $publicKey  = $_ENV['recaptcha.publicKey'];
-        $privateKey = $_ENV['recaptcha.privateKey'];
+        $publicKey  = env('recaptcha.publicKey', '');
+        $privateKey = env('recaptcha.privateKey', '');
 
         $content = [
             'list_var'   => $list_var,
@@ -55,7 +55,7 @@ class SystemController extends BaseController
 
     function updateKey()
     {
-        extract($this->input->getPost());
+        extract(post_only(['privatekey', 'publickey']), EXTR_SKIP);
 
         // Path ke file .env di root proyek
         $envPath = ROOTPATH . '.env';
@@ -68,26 +68,12 @@ class SystemController extends BaseController
         // Membaca file .env
         $envContent = file_get_contents($envPath);
 
-        // Pola regex untuk recaptcha.publicKey dan recaptcha.privateKey
-        $patternPublicKey  = "/^recaptcha\.publicKey\s*=\s*([^\r\n]*)/m";
-        $patternPrivateKey = "/^recaptcha\.privateKey\s*=\s*([^\r\n]*)/m";
+        // Kunci reCAPTCHA hanya berisi huruf, angka, "-" dan "_".
+        $publickey  = preg_replace('/[^A-Za-z0-9_-]/', '', (string) ($publickey ?? ''));
+        $privatekey = preg_replace('/[^A-Za-z0-9_-]/', '', (string) ($privatekey ?? ''));
 
-        // Jika key ada dalam file, lakukan penggantian
-        if (preg_match($patternPublicKey, $envContent)) {
-            // Update nilai publicKey yang ada
-            $envContent = preg_replace($patternPublicKey, 'recaptcha.publicKey=' . $publickey, $envContent);
-        } else {
-            // Tambahkan publicKey baru di akhir file jika tidak ada
-            $envContent .= "\nrecaptcha.publicKey=" . $publickey;
-        }
-
-        if (preg_match($patternPrivateKey, $envContent)) {
-            // Update nilai privateKey yang ada
-            $envContent = preg_replace($patternPrivateKey, 'recaptcha.privateKey=' . $privatekey, $envContent);
-        } else {
-            // Tambahkan privateKey baru di akhir file jika tidak ada
-            $envContent .= "\nrecaptcha.privateKey=" . $privatekey;
-        }
+        $envContent = env_set($envContent, 'recaptcha.publicKey', $publickey);
+        $envContent = env_set($envContent, 'recaptcha.privateKey', $privatekey);
 
         // Menulis kembali ke file .env
         $result = file_put_contents($envPath, $envContent);

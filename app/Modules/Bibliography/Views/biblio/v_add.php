@@ -41,7 +41,7 @@
                                 <select class="form-control select2add" style="width: 100%" data-type="gmd" name="gmd" id="gmd">
                                     <option value="" disabled hidden selected></option>
                                     <?php foreach ($mst_data['mst_gmd'] as $val): ?>
-                                        <option value="<?= $val->gmd_id ?>"><?= $val->gmd_name ?></option>
+                                        <option value="<?= esc($val->gmd_id) ?>"><?= esc($val->gmd_name) ?></option>
                                     <?php endforeach; ?>
                                 </select>
                             </div>
@@ -55,7 +55,7 @@
                             <select class="form-control  select2add" style="width: 100%" data-type="item_type" name="item_type" id="item_type">
                                 <option value="" disabled hidden selected></option>
                                 <?php foreach ($mst_data['mst_item_type'] as $val): ?>
-                                    <option value="<?= $val->item_type_id ?>"><?= $val->item_type_name ?></option>
+                                    <option value="<?= esc($val->item_type_id) ?>"><?= esc($val->item_type_name) ?></option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
@@ -72,7 +72,7 @@
                             <label for="author" class="control-label">Author</label>
                             <select class="form-control select2add" style="width: 100%" data-type="author" name="author[]" id="author" multiple>
                                 <?php foreach ($mst_data['mst_authors'] as $val): ?>
-                                    <option value="<?= $val->author_id ?>"><?= $val->author_name ?></option>
+                                    <option value="<?= esc($val->author_id) ?>"><?= esc($val->author_name) ?></option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
@@ -94,7 +94,7 @@
                         <div class="form-group">
                             <select class="form-control select2add" style="width: 100%" data-type="supervisor" name="supervisor[]" id="supervisor" multiple>
                                 <?php foreach ($mst_data['mst_supervisor'] as $val): ?>
-                                    <option value="<?= $val->supervisor_id ?>"><?= $val->supervisor_name ?></option>
+                                    <option value="<?= esc($val->supervisor_id) ?>"><?= esc($val->supervisor_name) ?></option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
@@ -104,7 +104,7 @@
                         <div class="form-group">
                             <select class="form-control select2add" style="width: 100%" data-type="examiner" name="examiner[]" id="examiner" multiple>
                                 <?php foreach ($mst_data['mst_examiner'] as $val): ?>
-                                    <option value="<?= $val->examiner_id ?>"><?= $val->examiner_name ?></option>
+                                    <option value="<?= esc($val->examiner_id) ?>"><?= esc($val->examiner_name) ?></option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
@@ -114,7 +114,7 @@
                             <label for="contributor" class="control-label">Contributor</label>
                             <select class="form-control select2add" style="width: 100%" data-type="contributor" name="contributor[]" id="contributor" multiple>
                                 <?php foreach ($mst_data['mst_contributor'] as $val): ?>
-                                    <option value="<?= $val->contributor_id ?>"><?= $val->contributor_name ?></option>
+                                    <option value="<?= esc($val->contributor_id) ?>"><?= esc($val->contributor_name) ?></option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
@@ -124,7 +124,7 @@
                             <label for="ministry" class="control-label">Code Ministry Pddikti</label>
                             <select class="form-control select2" name="ministry" id="ministry">
                                 <?php foreach ($mst_data['mst_ministry'] as $val): ?>
-                                    <option value="<?= $val->code_ministry ?>"><?= $val->name_prodi ?></option>
+                                    <option value="<?= esc($val->code_ministry) ?>"><?= esc($val->name_prodi) ?></option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
@@ -132,10 +132,10 @@
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="place" class="control-label">Publishing Place</label>
-                            <select class="form-control select2add" style="width: 100%" data-type="place" name=" place" id="place">
+                            <select class="form-control select2add" style="width: 100%" data-type="place" name="place" id="place">
                                 <option value="" disabled hidden selected></option>
                                 <?php foreach ($mst_data['mst_place'] as $val): ?>
-                                    <option value="<?= $val->place_id ?>"><?= $val->place_name ?></option>
+                                    <option value="<?= esc($val->place_id) ?>"><?= esc($val->place_name) ?></option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
@@ -170,7 +170,7 @@
                             <select class="form-control select2add" style="width: 100%" data-type="language" name="language" id="language">
                                 <option value="" disabled hidden selected></option>
                                 <?php foreach ($mst_data['mst_language'] as $val): ?>
-                                    <option value="<?= $val->language_id ?>"><?= $val->language_name ?></option>
+                                    <option value="<?= esc($val->language_id) ?>"><?= esc($val->language_name) ?></option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
@@ -187,7 +187,7 @@
                             <select class="form-control select2add" style="width: 100%" data-type="copyright" name="copyright" id="copyright">
                                 <option value="" disabled hidden selected></option>
                                 <?php foreach ($mst_data['mst_copyright'] as $val): ?>
-                                    <option value="<?= $val->copyright_id ?>"><?= $val->copyright_name ?></option>
+                                    <option value="<?= esc($val->copyright_id) ?>"><?= esc($val->copyright_name) ?></option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
@@ -198,7 +198,7 @@
                             <select class="form-control select2add" style="width: 100%" data-type="publisher" name="publisher" id="publisher">
                                 <option value="" disabled hidden selected></option>
                                 <?php foreach ($mst_data['mst_publisher'] as $val): ?>
-                                    <option value="<?= $val->publisher_id ?>"><?= $val->publisher_name ?></option>
+                                    <option value="<?= esc($val->publisher_id) ?>"><?= esc($val->publisher_name) ?></option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
@@ -209,7 +209,7 @@
                             <select class="form-control select2add" style="width: 100%" data-type="license" name="license" id="license">
                                 <option value="" disabled hidden selected></option>
                                 <?php foreach ($mst_data['mst_license'] as $val): ?>
-                                    <option value="<?= $val->license_id ?>"><?= $val->license_name ?></option>
+                                    <option value="<?= esc($val->license_id) ?>"><?= esc($val->license_name) ?></option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
@@ -269,7 +269,7 @@
                             <label for="topic" class="control-label">Subject</label>
                             <select class="form-control select2" name="topic[]" id="topic" multiple>
                                 <?php foreach ($mst_data['mst_topic'] as $val): ?>
-                                    <option value="<?= $val->topic_id ?>"><?= $val->topic ?></option>
+                                    <option value="<?= esc($val->topic_id) ?>"><?= esc($val->topic) ?></option>
                                 <?php endforeach; ?>
                             </select>
                         </div>

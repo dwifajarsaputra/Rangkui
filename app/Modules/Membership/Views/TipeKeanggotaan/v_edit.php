@@ -12,14 +12,14 @@
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="memberTypeName" class="control-label col-md-3">Membership Type*</label>
-                            <input type="hidden" name="member_type_id" value="<?= $data->member_type_id ?>">
-                            <input type="text" name="member_type_name" id="memberTypeName" class="form-control" value="<?= $data->member_type_name ?>" style="width: 100%;" maxlength="256">
+                            <input type="hidden" name="member_type_id" value="<?= esc($data->member_type_id) ?>">
+                            <input type="text" name="member_type_name" id="memberTypeName" class="form-control" value="<?= esc($data->member_type_name) ?>" style="width: 100%;" maxlength="256">
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="loanLimit" class="control-label col-md-3">Loan Amount</label>
-                            <input type="text" name="loan_limit" id="loanLimit" class="form-control" value="<?= $data->loan_limit ?>" size="5" maxlength="256">
+                            <input type="text" name="loan_limit" id="loanLimit" class="form-control" value="<?= esc($data->loan_limit) ?>" size="5" maxlength="256">
                         </div>
                     </div>
                 </div>
@@ -27,7 +27,7 @@
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="loanPeriode" class="control-label col-md-4">Lama Peminjaman (Dalam Hari)</label>
-                            <input type="text" name="loan_periode" id="loanPeriode" class="form-control" value="<?= $data->loan_periode ?>" size="5" maxlength="256">
+                            <input type="text" name="loan_periode" id="loanPeriode" class="form-control" value="<?= esc($data->loan_periode) ?>" size="5" maxlength="256">
                         </div>
                     </div>
                     <div class="col-md-6">
@@ -53,13 +53,13 @@
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="memberPeriode" class="control-label col-md-4">Membership Duration (In Days)</label>
-                            <input type="text" name="member_periode" id="memberPeriode" class="form-control" value="<?= $data->member_periode ?>" size="5" maxlength="256">
+                            <input type="text" name="member_periode" id="memberPeriode" class="form-control" value="<?= esc($data->member_periode) ?>" size="5" maxlength="256">
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="reserveLimit" class="control-label col-md-3">Reservation Mount</label>
-                            <input type="text" name="reserve_limit" id="reserveLimit" class="form-control" value="<?= $data->reserve_limit ?>" size="5" maxlength="256">
+                            <input type="text" name="reserve_limit" id="reserveLimit" class="form-control" value="<?= esc($data->reserve_limit) ?>" size="5" maxlength="256">
                         </div>
                     </div>
                 </div>
@@ -68,13 +68,13 @@
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="reborrowLimit" class="control-label col-md-3">Number of Renewals</label>
-                            <input type="text" name="reborrow_limit" id="reborrowLimit" class="form-control" value="<?= $data->reborrow_limit ?>" size="5" maxlength="256">
+                            <input type="text" name="reborrow_limit" id="reborrowLimit" class="form-control" value="<?= esc($data->reborrow_limit) ?>" size="5" maxlength="256">
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="fineEachDay" class="control-label col-md-3">Daily Fine</label>
-                            <input type="text" name="fine_each_day" id="fineEachDay" class="form-control" value="<?= $data->fine_each_day ?>" maxlength="256">
+                            <input type="text" name="fine_each_day" id="fineEachDay" class="form-control" value="<?= esc($data->fine_each_day) ?>" maxlength="256">
                         </div>
                     </div>
                 </div>
@@ -84,7 +84,7 @@
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="gracePeriode" class="control-label col-md-3">Late Tolerance</label>
-                            <input type="text" name="grace_periode" id="gracePeriode" class="form-control" value="<?= $data->grace_periode ?>" maxlength="256">
+                            <input type="text" name="grace_periode" id="gracePeriode" class="form-control" value="<?= esc($data->grace_periode) ?>" maxlength="256">
                         </div>
                     </div>
                 </div>

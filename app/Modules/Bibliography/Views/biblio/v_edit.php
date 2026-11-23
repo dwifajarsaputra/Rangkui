@@ -15,11 +15,11 @@
                 <div class="col-md-6">
                     <div class="form-group">
                         <label for="gmd" class="control-label">Gmd Type</label>
-                        <input type="hidden" name="biblio_id" value='<?= $data[0]->biblio_id ?>'>
-                        <input type="hidden" id="selectgmd" value='<?= json_encode($data[0]->gmd_id) ?>'>
+                        <input type="hidden" name="biblio_id" value='<?= esc($data[0]->biblio_id) ?>'>
+                        <input type="hidden" id="selectgmd" value='<?= json_encode($data[0]->gmd_id, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>'>
                         <select class="form-control select2add" data-type="gmd" name="gmd" id="gmd">
                             <?php foreach ($mst_data['mst_gmd'] as $val): ?>
-                                <option value="<?= $val->gmd_id ?>"><?= $val->gmd_name ?></option>
+                                <option value="<?= esc($val->gmd_id) ?>"><?= esc($val->gmd_name) ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
@@ -27,11 +27,11 @@
                 <div class="col-md-6">
                     <div class="form-group">
                         <label for="item_type" class="control-label">Item Type</label>
-                        <input type="hidden" id="selectitem_type_id" value='<?= json_encode($data[0]->item_type_id) ?>'>
+                        <input type="hidden" id="selectitem_type_id" value='<?= json_encode($data[0]->item_type_id, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>'>
                         <select class="form-control select2add" data-type="item_type" name="item_type" id="item_type">
                             <option value="" disabled hidden selected></option>
                             <?php foreach ($mst_data['mst_item_type'] as $val): ?>
-                                <option value="<?= $val->item_type_id ?>"><?= $val->item_type_name ?></option>
+                                <option value="<?= esc($val->item_type_id) ?>"><?= esc($val->item_type_name) ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
@@ -39,16 +39,16 @@
                 <div class="col-md-12">
                     <div class="form-group">
                         <label for="title" class="control-label">Title</label>
-                        <textarea name="title" class="form-control" id="title"><?= $data[0]->title ?></textarea>
+                        <textarea name="title" class="form-control" id="title"><?= esc($data[0]->title) ?></textarea>
                     </div>
                 </div>
                 <div class="col-md-6">
                     <div class="form-group">
                         <label for="author" class="control-label">Author</label>
-                        <input type="hidden" id="selectauthor" value='<?= json_encode($data[0]->uthors) ?>'>
+                        <input type="hidden" id="selectauthor" value='<?= json_encode($data[0]->uthors, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>'>
                         <select class="form-control select2add" data-type="author" name="author[]" id="author" multiple>
                             <?php foreach ($mst_data['mst_authors'] as $val): ?>
-                                <option value="<?= $val->author_id ?>"><?= $val->author_name ?></option>
+                                <option value="<?= esc($val->author_id) ?>"><?= esc($val->author_name) ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
@@ -56,22 +56,22 @@
                 <div class="col-md-6">
                     <div class="form-group">
                         <label for="student_id" class="control-label">Student Id</label>
-                        <input class="form-control" type="text" name="student_id" id="student_id" value="<?= $data[0]->student_id ?>">
+                        <input class="form-control" type="text" name="student_id" id="student_id" value="<?= esc($data[0]->student_id) ?>">
                     </div>
                 </div>
                 <div class="col-md-6">
                     <div class="form-group">
                         <label for="cp_email" class="control-label">Contact Email</label>
-                        <input class="form-control" type="text" name="cp_email" id="cp_email" value="<?= $data[0]->cp_email ?>">
+                        <input class="form-control" type="text" name="cp_email" id="cp_email" value="<?= esc($data[0]->cp_email) ?>">
                     </div>
                 </div>
                 <div class="col-md-6">
                     <div class="form-group">
                         <label for="supervisor" class="control-label">Supervisor</label>
-                        <input type="hidden" id="selectsupervisor" value='<?= json_encode($data[0]->supervisor) ?>'>
+                        <input type="hidden" id="selectsupervisor" value='<?= json_encode($data[0]->supervisor, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>'>
                         <select class="form-control select2add" data-type="supervisor" name="supervisor[]" id="supervisor" multiple>
                             <?php foreach ($mst_data['mst_supervisor'] as $val): ?>
-                                <option value="<?= $val->supervisor_id ?>"><?= $val->supervisor_name ?></option>
+                                <option value="<?= esc($val->supervisor_id) ?>"><?= esc($val->supervisor_name) ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
@@ -79,10 +79,10 @@
                 <div class="col-md-6">
                     <div class="form-group">
                         <label for="examiner" class="control-label">Examiner</label>
-                        <input type="hidden" id="selectexaminer" value='<?= json_encode($data[0]->examiner) ?>'>
+                        <input type="hidden" id="selectexaminer" value='<?= json_encode($data[0]->examiner, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>'>
                         <select class="form-control select2add" data-type="examiner" name="examiner[]" id="examiner" multiple>
                             <?php foreach ($mst_data['mst_examiner'] as $val): ?>
-                                <option value="<?= $val->examiner_id ?>"><?= $val->examiner_name ?></option>
+                                <option value="<?= esc($val->examiner_id) ?>"><?= esc($val->examiner_name) ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
@@ -90,10 +90,10 @@
                 <div class="col-md-6">
                     <div class="form-group">
                         <label for="contributor" class="control-label">Contributor</label>
-                        <input type="hidden" id="selectcontributor" value='<?= json_encode($data[0]->contributor) ?>'>
+                        <input type="hidden" id="selectcontributor" value='<?= json_encode($data[0]->contributor, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>'>
                         <select class="form-control select2add" data-type="contributor" name="contributor[]" id="contributor" multiple>
                             <?php foreach ($mst_data['mst_contributor'] as $val): ?>
-                                <option value="<?= $val->contributor_id ?>"><?= $val->contributor_name ?></option>
+                                <option value="<?= esc($val->contributor_id) ?>"><?= esc($val->contributor_name) ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
@@ -101,12 +101,12 @@
                 <div class="col-md-6">
                     <div class="form-group">
                         <label for="ministry" class="control-label">Code Ministry Pddikti</label>
-                        <input type="hidden" id="selectministry" value='<?= json_encode($data[0]->code_ministry) ?>'>
+                        <input type="hidden" id="selectministry" value='<?= json_encode($data[0]->code_ministry, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>'>
                         <select class="form-control select2 select2ad" data-type='ministry' name="ministry" id="ministry">
                             <option value="" selected hidden disabled></option>
                             <option value="create_new">Tambah Code Ministry Pddikti</option>
                             <?php foreach ($mst_data['mst_ministry'] as $val): ?>
-                                <option value="<?= $val->code_ministry ?>"><?= $val->name_prodi ?></option>
+                                <option value="<?= esc($val->code_ministry) ?>"><?= esc($val->name_prodi) ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
@@ -114,11 +114,11 @@
                 <div class="col-md-6">
                     <div class="form-group">
                         <label for="place" class="control-label">Publishing Place</label>
-                        <input type="hidden" id="selectplace" value='<?= json_encode($data[0]->publish_place_id) ?>'>
+                        <input type="hidden" id="selectplace" value='<?= json_encode($data[0]->publish_place_id, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>'>
                         <select class="form-control select2add" data-type="place" name="place" id="place">
                             <option value="" disabled hidden selected></option>
                             <?php foreach ($mst_data['mst_place'] as $val): ?>
-                                <option value="<?= $val->place_id ?>"><?= $val->place_name ?></option>
+                                <option value="<?= esc($val->place_id) ?>"><?= esc($val->place_name) ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
@@ -126,7 +126,7 @@
                 <div class="col-md-6">
                     <div class="form-group">
                         <label for="edition" class="control-label">Date Type</label>
-                        <input type="hidden" id="selectedition" value='<?= json_encode($data[0]->edition) ?>'>
+                        <input type="hidden" id="selectedition" value='<?= json_encode($data[0]->edition, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>'>
                         <select class="form-control" name="edition" id="edition">
                             <option value="0">Pilih</option>
                             <option value="Published">Published</option>
@@ -139,23 +139,23 @@
                 <div class="col-md-6">
                     <div class="form-group">
                         <label for="collation" class="control-label">Collation</label>
-                        <input class="form-control" type="text" name="collation" id="collation" value="<?= $data[0]->collation ?>">
+                        <input class="form-control" type="text" name="collation" id="collation" value="<?= esc($data[0]->collation) ?>">
                     </div>
                 </div>
                 <div class="col-md-6">
                     <div class="form-group">
                         <label for="specDetailInfo" class="control-label">Specific Detail Info</label>
-                        <input class="form-control" type="text" name="specDetailInfo" id="specDetailInfo" value="<?= $data[0]->spec_detail_info ?>">
+                        <input class="form-control" type="text" name="specDetailInfo" id="specDetailInfo" value="<?= esc($data[0]->spec_detail_info) ?>">
                     </div>
                 </div>
                 <div class="col-md-6">
                     <div class="form-group">
                         <label for="language" class="control-label">Language</label>
-                        <input type="hidden" id="selectlanguage" value='<?= json_encode($data[0]->language_id) ?>'>
+                        <input type="hidden" id="selectlanguage" value='<?= json_encode($data[0]->language_id, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>'>
                         <select class="form-control select2add" data-type="language" name="language" id="language">
                             <option value="" disabled hidden selected></option>
                             <?php foreach ($mst_data['mst_language'] as $val): ?>
-                                <option value="<?= $val->language_id ?>"><?= $val->language_name ?></option>
+                                <option value="<?= esc($val->language_id) ?>"><?= esc($val->language_name) ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
@@ -163,18 +163,18 @@
                 <div class="col-md-6">
                     <div class="form-group">
                         <label for="departement" class="control-label">Department</label>
-                        <input class="form-control" type="text" name="departement" id="departement" value="<?= $data[0]->departement ?>">
+                        <input class="form-control" type="text" name="departement" id="departement" value="<?= esc($data[0]->departement) ?>">
                     </div>
                 </div>
                 <div class="col-md-6">
                     <div class="form-group">
                         <label for="copyright" class="control-label">Copyright</label>
-                        <input type="hidden" id="selectcopyright" value='<?= json_encode($data[0]->copyright) ?>'>
+                        <input type="hidden" id="selectcopyright" value='<?= json_encode($data[0]->copyright, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>'>
                         <select class="form-control select2add" data-type="copyright" name="copyright" id="copyright">
                             <option value="" disabled hidden selected></option>
 
                             <?php foreach ($mst_data['mst_copyright'] as $val): ?>
-                                <option value="<?= $val->copyright_id ?>"><?= $val->copyright_name ?></option>
+                                <option value="<?= esc($val->copyright_id) ?>"><?= esc($val->copyright_name) ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
@@ -182,11 +182,11 @@
                 <div class="col-md-6">
                     <div class="form-group">
                         <label for="publisher" cslass="control-label">Publisher</label>
-                        <input type="hidden" id="selectpublisher" value='"[<?= $data[0]->publisher_id ?>]"'>
+                        <input type="hidden" id="selectpublisher" value='"[<?= esc($data[0]->publisher_id) ?>]"'>
                         <select class="form-control select2add" data-type="publisher" name="publisher" id="publisher">
                             <option value="" disabled hidden selected></option>
                             <?php foreach ($mst_data['mst_publisher'] as $val): ?>
-                                <option value="<?= $val->publisher_id ?>"><?= $val->publisher_name ?></option>
+                                <option value="<?= esc($val->publisher_id) ?>"><?= esc($val->publisher_name) ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
@@ -194,12 +194,12 @@
                 <div class="col-md-6">
                     <div class="form-group">
                         <label for="license" class="control-label">License</label>
-                        <input type="hidden" id="selectlicense" value='<?= json_encode($data[0]->license) ?>'>
+                        <input type="hidden" id="selectlicense" value='<?= json_encode($data[0]->license, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>'>
                         <select class="form-control select2add" data-type="license" name="license" id="license">
                             <option value="" disabled hidden selected></option>
 
                             <?php foreach ($mst_data['mst_license'] as $val): ?>
-                                <option value="<?= $val->license_id ?>"><?= $val->license_name ?></option>
+                                <option value="<?= esc($val->license_id) ?>"><?= esc($val->license_name) ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
@@ -207,7 +207,7 @@
                 <div class="col-md-6">
                     <div class="form-group">
                         <label for="year" class="control-label">Publish Year</label>
-                        <input class="form-control" type="text" name="year" id="year" value="<?= $data[0]->publish_year ?>">
+                        <input class="form-control" type="text" name="year" id="year" value="<?= esc($data[0]->publish_year) ?>">
                     </div>
                 </div>
                 <div class="col-md-6">
@@ -222,7 +222,7 @@
                                 <?php
                                 $image = empty($data[0]->image) ? base_url("assets/images/user.png") : base_url("uploads/images/docs/" . $data[0]->image);
                                 ?>
-                                <img class="img-responsive avatar-view" src="<?= $image  ?>" alt="Avatar" title="Change the avatar" style="width: 100%; height: 200px;object-fit: cover;">
+                                <img class="img-responsive avatar-view" src="<?= esc($image) ?>" alt="Avatar" title="Change the avatar" style="width: 100%; height: 200px;object-fit: cover;">
                             </div>
                         </div>
                     </div>
@@ -264,37 +264,37 @@
                         </span>
                         <?php $x = 1;
                         foreach (json_decode($data[0]->attachment) as $att) : ?>
-                            <span class="attachment-row" data-index="<?= $x ?>">
+                            <span class="attachment-row" data-index="<?= esc($x) ?>">
                                 <div class="col-sm-2">
-                                    <input type="hidden" name="edit_file_id[<?= $x ?>]" value="<?= $att->file_id ?>">
-                                    <input type="text" name="edit_title_file[<?= $x ?>]" value="<?= $att->file_title ?>" class="form-control editable-field" readonly>
+                                    <input type="hidden" name="edit_file_id[<?= esc($x) ?>]" value="<?= esc($att->file_id) ?>">
+                                    <input type="text" name="edit_title_file[<?= esc($x) ?>]" value="<?= esc($att->file_title) ?>" class="form-control editable-field" readonly>
                                 </div>
                                 <div class="col-sm-1">
-                                    <input type="text" name="edit_url_file[<?= $x ?>]" value="<?= $att->file_url ?? '-' ?>" class="form-control editable-field" readonly>
+                                    <input type="text" name="edit_url_file[<?= esc($x) ?>]" value="<?= esc($att->file_url ?? '-') ?>" class="form-control editable-field" readonly>
                                 </div>
                                 <div class="col-sm-2">
-                                    <input type="text" name="edit_desk_file[<?= $x ?>]" value="<?= $att->file_desc ?? '-' ?>" class="form-control editable-field" readonly>
+                                    <input type="text" name="edit_desk_file[<?= esc($x) ?>]" value="<?= esc($att->file_desc ?? '-') ?>" class="form-control editable-field" readonly>
                                 </div>
                                 <div class="col-sm-2">
-                                    <select name="edit_akses_file[<?= $x ?>]" class="form-control editable-field" readonly>
+                                    <select name="edit_akses_file[<?= esc($x) ?>]" class="form-control editable-field" readonly>
                                         <option value="private" <?= $att->access_type == 'private' ? 'selected' : '' ?>>Private</option>
                                         <option value="public" <?= $att->access_type == 'public' ? 'selected' : '' ?>>Public</option>
                                     </select>
                                 </div>
                                 <div class="col-sm-2">
-                                    <select name="edit_akses_member[<?= $x ?>]" class="form-control editable-field" readonly>
+                                    <select name="edit_akses_member[<?= esc($x) ?>]" class="form-control editable-field" readonly>
                                         <option value="0" <?= $att->access_limit == 0 ? 'selected' : '' ?>>Batasi Akses</option>
                                         <option value="1" <?= $att->access_limit == 1 ? 'selected' : '' ?>>Semua Anggota</option>
                                     </select>
                                 </div>
                                 <div class="col-sm-2">
-                                    <input type="file" name="edit_attc_file[<?= $x ?>]" class="form-control" accept="application/pdf">
+                                    <input type="file" name="edit_attc_file[<?= esc($x) ?>]" class="form-control" accept="application/pdf">
                                     <small class="form-text text-danger">Max PDF size 50 MB</small>
                                 </div>
                                 <div class="col-sm-1">
-                                    <button type="button" class="btn btn-primary btn-edit" onclick="toggleEditAttachment(<?= $x ?>)"><i class="fa fa-edit"></i></button>
-                                    <button type="button" class="btn btn-success btn-save" onclick="saveAttachment(<?= $x ?>)" style="display: none;"><i class="fa fa-save"></i></button>
-                                    <button type="button" class="btn btn-danger btn-remove" onclick="hapusAttahcment(<?= $att->biblio_id ?>, <?= $att->file_id ?>)"><i class="fa fa-minus"></i></button>
+                                    <button type="button" class="btn btn-primary btn-edit" onclick="toggleEditAttachment(<?= esc($x) ?>)"><i class="fa fa-edit"></i></button>
+                                    <button type="button" class="btn btn-success btn-save" onclick="saveAttachment(<?= esc($x) ?>)" style="display: none;"><i class="fa fa-save"></i></button>
+                                    <button type="button" class="btn btn-danger btn-remove" onclick="hapusAttahcment(<?= esc($att->biblio_id) ?>, <?= esc($att->file_id) ?>)"><i class="fa fa-minus"></i></button>
                                 </div>
                             </span>
                         <?php $x++;
@@ -304,10 +304,10 @@
                 <div class="col-md-12">
                     <div class="form-group">
                         <label for="topic" class="control-label">Subyek</label>
-                        <input type="hidden" id="selecttopic" value='<?= json_encode($data[0]->topic) ?>'>
+                        <input type="hidden" id="selecttopic" value='<?= json_encode($data[0]->topic, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>'>
                         <select class="form-control select2" name="topic[]" id="topic" multiple>
                             <?php foreach ($mst_data['mst_topic'] as $val): ?>
-                                <option value="<?= $val->topic_id ?>"><?= $val->topic ?></option>
+                                <option value="<?= esc($val->topic_id) ?>"><?= esc($val->topic) ?></option>
                             <?php endforeach; ?>
                         </select>
                     </div>
@@ -315,25 +315,25 @@
                 <div class="col-md-12">
                     <div class="form-group">
                         <label for="notes" class="control-label">Abstrak</label>
-                        <textarea class="form-control" name="notes" id="notes"> <?= $data[0]->notes ?></textarea>
+                        <textarea class="form-control" name="notes" id="notes"> <?= esc($data[0]->notes) ?></textarea>
                     </div>
                 </div>
                 <div class="col-md-12">
                     <div class="form-group">
                         <label for="class" class="control-label">Klasifikasi</label>
-                        <input class="form-control" type="text" name="class" id="class" maxlength="40" value="<?= $data[0]->classification ?>">
+                        <input class="form-control" type="text" name="class" id="class" maxlength="40" value="<?= esc($data[0]->classification) ?>">
                     </div>
                 </div>
                 <div class="col-md-12">
                     <div class="form-group">
                         <label for="callNumber" class="control-label">No. panggil</label>
-                        <input class="form-control" type="text" name="callNumber" id="callNumber" value="<?= $data[0]->call_number ?>">
+                        <input class="form-control" type="text" name="callNumber" id="callNumber" value="<?= esc($data[0]->call_number) ?>">
                     </div>
                 </div>
                 <div class="col-md-12">
                     <div class="form-group">
                         <label for="urlcrossref" class="control-label">Url Crossref</label>
-                        <input class="form-control" type="text" name="urlcrossref" id="urlcrossref" value="<?= $data[0]->url_crossref ?>">
+                        <input class="form-control" type="text" name="urlcrossref" id="urlcrossref" value="<?= esc($data[0]->url_crossref) ?>">
                     </div>
                 </div>
                 <div class="col-md-12">

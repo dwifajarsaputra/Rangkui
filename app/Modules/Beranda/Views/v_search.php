@@ -14,7 +14,7 @@
                                         <div class="row">
                                             <div class="col-md-9">
                                                 <ul class="post-meta">
-                                                    <li> <a href="<?= base_url('beranda/detail/' . slim_encrypt($value->biblio_id)) ?>"><?= $value->gmd ?></a></li>
+                                                    <li> <a href="<?= base_url('beranda/detail/' . slim_encrypt($value->biblio_id)) ?>"><?= esc($value->gmd) ?></a></li>
                                                 </ul>
                                             </div>
                                             <div class="col-md-3">
@@ -24,8 +24,8 @@
                                             </div>
                                         </div>
                                         <div class="card-body pt-0 pb-0 pl-0 pr-0">
-                                            <h2 class="h2-title"><a class="post-title" href="<?= base_url('beranda/detail/' . slim_encrypt($value->biblio_id)) ?>"><?= character_limiter($value->title, 160) ?></a></h2>
-                                            <p class="card-text title-abstract text-justify"><?= character_limiter($value->notes, 330) ?></p>
+                                            <h2 class="h2-title"><a class="post-title" href="<?= base_url('beranda/detail/' . slim_encrypt($value->biblio_id)) ?>"><?= esc(character_limiter(strip_tags((string) $value->title), 160)) ?></a></h2>
+                                            <p class="card-text title-abstract text-justify"><?= esc(character_limiter(strip_tags((string) $value->notes), 330)) ?></p>
                                             <div class="row">
                                                 <div class="col">
                                                     <ul class="list-inline">

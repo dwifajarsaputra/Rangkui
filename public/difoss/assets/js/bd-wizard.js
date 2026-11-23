@@ -17,18 +17,18 @@ form.steps({
       // Cek pilihan dari langkah pertama
       $('#wizard-p-2').html('Loading ...')
       if (selectedOption === 'fresh') {
-        $('#wizard-p-2').load('/install/fresh', () => {
+        $('#wizard-p-2').load(baseUrl + 'install/fresh', () => {
           togglePassword()
         })
       } else if (selectedOption === 'upgrade') {
-        $('#wizard-p-2').load('/install/upgrade', () => {
+        $('#wizard-p-2').load(baseUrl + 'install/upgrade', () => {
           togglePassword()
         })
       }
     }
 
     if (newIndex == 3) {
-      $.get('/install/type-installation', function (data) {
+      $.get(baseUrl + 'install/type-installation', function (data) {
         let tipe = data.type
 
         tipe = tipe.toLowerCase().replace(/\b[a-z]/g, function (letter) {
@@ -48,25 +48,24 @@ form.steps({
         })
 
         if (tipe == 'Fresh') {
-          $.post('/install/fresh', cnf, data => {
+          $.post(baseUrl + 'install/fresh', cnf, data => {
             cnf = data
 
             htmlList = '<ul>'
             for (let key in cnf) {
-              htmlList += `<li>${key}: ${cnf[key]}</li>`
+              htmlList += `<li>${escapeHtml(key)}: ${escapeHtml(cnf[key])}</li>`
             }
-            // htmlList += `<li>Connection: ${cnf}</li>`
             htmlList += '</ul>'
 
             $('#install-type').append(htmlList)
           })
         } else {
-          $.post('/install/upgrade', cnf, data => {
+          $.post(baseUrl + 'install/upgrade', cnf, data => {
             cnf = data
 
             htmlList = '<ul>'
             for (let key in cnf) {
-              htmlList += `<li>${key}: ${cnf[key]}</li>`
+              htmlList += `<li>${escapeHtml(key)}: ${escapeHtml(cnf[key])}</li>`
             }
             htmlList += '</ul>'
 
@@ -106,7 +105,7 @@ form.steps({
 
     // // Kirim data ke server
     $.ajax({
-      url: '/install/process', // Sesuaikan dengan URL tujuan Anda
+      url: baseUrl + 'install/process', // Sesuaikan dengan URL tujuan Anda
       type: 'POST',
       data: {
         installType: installType,
@@ -129,8 +128,12 @@ form.steps({
           progress.append(ul)
         }
       },
-      error: function (error) {
-        console.log('Installation failed. Please try again.')
+      error: function (xhr) {
+        const li = document.createElement('li')
+        li.textContent = (xhr.responseJSON && xhr.responseJSON.message) || 'Instalasi gagal. Periksa log di writable/logs lalu coba lagi.'
+        ul.appendChild(li)
+        document.getElementById('progress-install').append(ul)
+        $('a[href="#finish"]').text('Finish')
       }
     })
   },
@@ -171,4 +174,8 @@ function togglePassword () {
         }
       })
   }
+}
+
+function escapeHtml (value) {
+  return String(value).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]))
 }

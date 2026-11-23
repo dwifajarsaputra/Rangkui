@@ -26,16 +26,16 @@
                 <tbody>
                     <?php foreach ($data as $value): ?>
                         <tr>
-                            <td><?= $value->member_id ?></td>
-                            <td><?= $value->member_name ?></td>
-                            <td><?= $value->member_type_name ?></td>
-                            <td><?= $value->member_email ?></td>
-                            <td><?= $value->last_update ?></td>
+                            <td><?= esc($value->member_id) ?></td>
+                            <td><?= esc($value->member_name) ?></td>
+                            <td><?= esc($value->member_type_name) ?></td>
+                            <td><?= esc($value->member_email) ?></td>
+                            <td><?= esc($value->last_update) ?></td>
                             <td align="center">
                                 <a href="<?= base_url("membership/edit/?mi={$value->member_id}") ?>" class="btn btn-sm btn-info"><i class="fa fa-pencil"></i></a>
                                 <form action="<?= base_url("membership/delete") ?>" method="post" style="display:inline;">
                                     <?= csrf_field() ?>
-                                    <input type="hidden" name="mi" value="<?= $value->member_id ?>">
+                                    <input type="hidden" name="mi" value="<?= esc($value->member_id) ?>">
                                     <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Are you sure you want to delete this member?')"><i class="fa fa-trash"></i></button>
                                 </form>
                             </td>

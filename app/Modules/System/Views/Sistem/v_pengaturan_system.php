@@ -11,7 +11,7 @@
             <div class="col-md-6">
                 <div class="form-group">
                     <label for="library_name">Library Name</label>
-                    <input type="text" class="form-control" name="library_name" id="library_name" value="<?= unserialize($library_name); ?>" tabindex="1">
+                    <input type="text" class="form-control" name="library_name" id="library_name" value="<?= esc((string) @unserialize($library_name, ['allowed_classes' => ['stdClass']])); ?>" tabindex="1">
                 </div>
 
 
@@ -19,29 +19,29 @@
                     <label for="default_lang">Default Application Language</label>
                     <select class="form-control select2" name="default_lang" id="default_lang" tabindex="3" data-placeholder="--Please Select Language--" data-allow-clear="true">
                         <option></option>
-                        <?php $lang = unserialize($default_lang) ?>
+                        <?php $lang = unserialize($default_lang, ['allowed_classes' => ['stdClass']]) ?>
                         <?php foreach ($list_lang as $k => $val): ?>
-                            <option value="<?= $val->language_id; ?>" <?= $lang == $val->language_id ? "selected" : "" ?>><?= $val->language_name; ?></option>
+                            <option value="<?= esc($val->language_id) ?>" <?= $lang == $val->language_id ? "selected" : "" ?>><?= esc($val->language_name) ?></option>
                         <?php endforeach ?>
                     </select>
                 </div>
 
                 <div class="form-group">
                     <label for="session_timeout">Session Expired</label>
-                    <input type="number" class="form-control" name="session_timeout" id="session_timeout" value="<?= unserialize($session_timeout); ?>" tabindex="5">
+                    <input type="number" class="form-control" name="session_timeout" id="session_timeout" value="<?= esc((string) @unserialize($session_timeout, ['allowed_classes' => ['stdClass']])); ?>" tabindex="5">
                 </div>
 
                 <div class="form-group">
                     <label for="spellchecker_enabled">Enable Spell Checker</label>
                     <select class="form-control select2" name="spellchecker_enabled" id="spellchecker_enabled" tabindex="11">
-                        <?php $spel_chek = unserialize($spellchecker_enabled) ?>
+                        <?php $spel_chek = unserialize($spellchecker_enabled, ['allowed_classes' => ['stdClass']]) ?>
                         <option value="0" <?= $spel_chek == 0 ? "selected" : ""; ?>>Impossible</option>
                         <option value="1" <?= $spel_chek == 1 ? "selected" : ""; ?>>Possible</option>
                     </select>
                 </div>
 
                 <?php
-                $barcode_encode = unserialize($barcode_encoding);
+                $barcode_encode = unserialize($barcode_encoding, ['allowed_classes' => ['stdClass']]);
 
                 $options = [
                     "ISBN"   => "isbn numbers (still EAN-13)",
@@ -62,12 +62,12 @@
                     <select class="form-control select2" name="barcode_encoding" id="barcode_encoding" tabindex="12" data-placeholder="--Choose Barcode Encoding--">
                         <option></option>
                         <?php foreach ($options as $key => $val) : ?>
-                            <option value="<?= $key; ?>" <?= ($barcode_encode == $key) ? "selected" : ""; ?>><?= $val ?></option>
+                            <option value="<?= esc($key) ?>" <?= ($barcode_encode == $key) ? "selected" : ""; ?>><?= esc($val) ?></option>
                         <?php endforeach ?>
                     </select>
                 </div>
                 <?php
-                $recaptcha = unserialize($recaptcha);
+                $recaptcha = unserialize($recaptcha, ['allowed_classes' => ['stdClass']]);
                 $recaptcha_admin = $recaptcha['smc'];
                 $recaptcha_member = $recaptcha['member'];
                 ?>
@@ -103,7 +103,7 @@
             <div class="col-md-6">
                 <div class="form-group">
                     <label for="library_subname">Additional Library Name</label>
-                    <input type="text" class="form-control" name="library_subname" id="library_subname" value="<?= unserialize($library_subname); ?>" tabindex="2">
+                    <input type="text" class="form-control" name="library_subname" id="library_subname" value="<?= esc((string) @unserialize($library_subname, ['allowed_classes' => ['stdClass']])); ?>" tabindex="2">
                 </div>
 
                 <?php
@@ -114,14 +114,14 @@
                     "40" => "40",
                     "50" => "50"
                 ];
-                $opac_result = unserialize($opac_result_num);
+                $opac_result = unserialize($opac_result_num, ['allowed_classes' => ['stdClass']]);
                 ?>
                 <div class="form-group">
                     <label for="opac_result_num">Number of Collections Displayed in OPAC Search Results</label>
                     <select class="form-control select2" name="opac_result_num" id="opac_result_num" tabindex="4" data-placeholder="--Select Opac Result--">
                         <option></option>
                         <?php foreach ($options as $val) : ?>
-                            <option value="<?= $val; ?>" <?= $opac_result == $val ? "selected" : ""; ?>><?= $val ?></option>
+                            <option value="<?= esc($val) ?>" <?= $opac_result == $val ? "selected" : ""; ?>><?= esc($val) ?></option>
                         <?php endforeach ?>
                     </select>
                 </div>
@@ -130,24 +130,24 @@
                 <div class="form-group">
                     <label for="enable_xml_detail">Deteil XML OPAC</label>
                     <select class="form-control select2" name="enable_xml_detail" id="enable_xml_detail" tabindex="6">
-                        <option value="0" <?= unserialize($enable_xml_detail) == 0 ? "selected" : ""; ?>>Impossible</option>
-                        <option value="1" <?= unserialize($enable_xml_detail) == 1 ? "selected" : ""; ?>>Possible</option>
+                        <option value="0" <?= unserialize($enable_xml_detail, ['allowed_classes' => ['stdClass']]) == 0 ? "selected" : ""; ?>>Impossible</option>
+                        <option value="1" <?= unserialize($enable_xml_detail, ['allowed_classes' => ['stdClass']]) == 1 ? "selected" : ""; ?>>Possible</option>
                     </select>
                 </div>
 
                 <div class="form-group">
                     <label for="enable_xml_result">Results XML OPAC</label>
                     <select class="form-control select2" name="enable_xml_result" id="enable_xml_result" tabindex="7">
-                        <option value="0" <?= unserialize($enable_xml_result) == 0 ? "selected" : ""; ?>>Impossible</option>
-                        <option value="1" <?= unserialize($enable_xml_result) == 1 ? "selected" : ""; ?>>Possible</option>
+                        <option value="0" <?= unserialize($enable_xml_result, ['allowed_classes' => ['stdClass']]) == 0 ? "selected" : ""; ?>>Impossible</option>
+                        <option value="1" <?= unserialize($enable_xml_result, ['allowed_classes' => ['stdClass']]) == 1 ? "selected" : ""; ?>>Possible</option>
                     </select>
                 </div>
 
                 <div class="form-group">
                     <label for="allow_file_download">Enable OPAC File Download</label>
                     <select class="form-control select2" name="allow_file_download" id="allow_file_download" tabindex="8">
-                        <option value="0" <?= unserialize($allow_file_download) == 0 ? "selected" : ""; ?>>Not Allowed</option>
-                        <option value="1" <?= unserialize($allow_file_download) == 1 ? "selected" : ""; ?>>Allowed</option>
+                        <option value="0" <?= unserialize($allow_file_download, ['allowed_classes' => ['stdClass']]) == 0 ? "selected" : ""; ?>>Not Allowed</option>
+                        <option value="1" <?= unserialize($allow_file_download, ['allowed_classes' => ['stdClass']]) == 1 ? "selected" : ""; ?>>Allowed</option>
                     </select>
                 </div>
 
@@ -156,8 +156,8 @@
                     <label for="enable_promote_titles">Show Selected Titles on the OPAC Page</label>
                     <div class="radio">
                         <label>
-                            <input type="radio" name="enable_promote_titles" value="1" tabindex="9" <?= unserialize($enable_promote_titles) == 1 ? "checked" : ""; ?>> Yes
-                            <input type="radio" name="enable_promote_titles" value="0" tabindex="10" <?= unserialize($enable_promote_titles) == 0 ? "checked" : ""; ?>> No
+                            <input type="radio" name="enable_promote_titles" value="1" tabindex="9" <?= unserialize($enable_promote_titles, ['allowed_classes' => ['stdClass']]) == 1 ? "checked" : ""; ?>> Yes
+                            <input type="radio" name="enable_promote_titles" value="0" tabindex="10" <?= unserialize($enable_promote_titles, ['allowed_classes' => ['stdClass']]) == 0 ? "checked" : ""; ?>> No
                         </label>
                     </div>
                 </div>

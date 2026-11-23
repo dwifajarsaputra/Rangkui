@@ -47,7 +47,7 @@ class KontenController extends BaseController
     {
         $konten = new KontenModel();
 
-        extract($this->input->getPost());
+        extract(post_only(['content_desc', 'content_path', 'content_title']), EXTR_SKIP);
         $now = date("Y-m-d H:i:s");
         $data = [
             'content_title' => trim($content_title),
@@ -100,7 +100,7 @@ class KontenController extends BaseController
 
     function update()
     {
-        extract($this->input->getPost());
+        extract(post_only(['content_desc', 'content_path', 'content_title', 'log_message', 'w_id']), EXTR_SKIP);
 
         $konten = new KontenModel();
 

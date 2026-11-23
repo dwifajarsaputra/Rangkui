@@ -17,9 +17,9 @@
                 <tbody>
                     <?php foreach ($list_member as $val): ?>
                         <tr>
-                            <td><?= $val->member_id; ?></td>
-                            <td><?= $val->member_name; ?></td>
-                            <td><?= $val->member_type_name; ?></td>
+                            <td><?= esc($val->member_id) ?></td>
+                            <td><?= esc($val->member_name) ?></td>
+                            <td><?= esc($val->member_type_name) ?></td>
                         </tr>
                     <?php endforeach ?>
                 </tbody>

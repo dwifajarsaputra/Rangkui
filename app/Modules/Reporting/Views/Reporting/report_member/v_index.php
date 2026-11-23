@@ -13,19 +13,19 @@
                 <tr>
                     <td>Member Registered</td>
                     <td>
-                        <?= $total_member; ?>
+                        <?= esc($total_member) ?>
                     </td>
                 </tr>
                 <tr>
                     <td>Member Active</td>
                     <td>
-                        <?= $active_member; ?>
+                        <?= esc($active_member) ?>
                     </td>
                 </tr>
                 <tr>
                     <td>Member Expired</td>
                     <td>
-                        <?= $expired_member; ?>
+                        <?= esc($expired_member) ?>
                     </td>
                 </tr>
             </table>

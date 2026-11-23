@@ -135,6 +135,41 @@ class IndexBiblioModel extends Model
         $this->indexingTime = $_end - $_start;
     }
 
+    /**
+     * Perbarui entri indeks pencarian untuk SATU dokumen (dipanggil otomatis saat katalog
+     * ditambah, diubah, atau dihapus) agar OPAC langsung mencerminkan perubahan.
+     */
+    public function reindexOne(int $biblio_id): bool
+    {
+        $isNoSql = env('INDEX_TYPE', 'mysql') === 'nosql';
+
+        try {
+            $data = [];
+            $this->makeIndex($biblio_id, $data);
+
+            if ($isNoSql) {
+                $collection = Services::mongo()->biblio;
+                $collection->deleteMany(['biblio_id' => ['$in' => [$biblio_id, (string) $biblio_id]]]);
+                if ($data !== []) {
+                    $collection->insertOne($data);
+                }
+
+                return true;
+            }
+
+            $this->db->table('search_biblio')->where('biblio_id', $biblio_id)->delete();
+            if ($data !== []) {
+                $this->db->table('search_biblio')->insert($data);
+            }
+
+            return true;
+        } catch (\Throwable $e) {
+            log_message('error', "Reindex biblio {$biblio_id} gagal: " . $e->getMessage());
+
+            return false;
+        }
+    }
+
     function makeIndex(int $biblio_id, array &$data)
     {
         $sql = "SELECT
@@ -180,21 +215,12 @@ class IndexBiblioModel extends Model
             /**
              * GMD, Title, Year
              */
-            array_walk_recursive($data, function (&$row, $key) {
-                if ($key == 'labels') {
-                    if (!empty($row) || !is_null($row)) {
-                        $row = 'literal{NULL}';
-                    }
-                }
-
-                if ($key == 'notes') {
-                    $row = trim($this->db->escapeString(strip_tags($row, '<br><p><div><span><i><em><strong><b><code>')));
-                }
-
-                if (!is_null($row)) {
-                    $row = $this->db->escapeString($row);
-                }
-            });
+            // Query Builder sudah meng-escape nilai saat insert; jangan escapeString() manual
+            // (dulu menyebabkan nama seperti O'Brien tersimpan sebagai O\'Brien di indeks).
+            $data['labels'] = null;
+            if (isset($data['notes'])) {
+                $data['notes'] = trim(strip_tags((string) $data['notes']));
+            }
 
             /**
              * Author
@@ -257,7 +283,7 @@ class IndexBiblioModel extends Model
                 $au_all .= $val->name . ' - ';
             }
 
-            $data['author'] = $this->db->escapeString($au_all);
+            $data['author'] = $au_all;
         }
     }
     private function _examiner(int $biblio_id, array &$data)
@@ -282,7 +308,7 @@ class IndexBiblioModel extends Model
                 $au_all .= $val->name . ' - ';
             }
 
-            $data['examiner'] = $this->db->escapeString($au_all);
+            $data['examiner'] = $au_all;
         }
     }
     private function _supervisor(int $biblio_id, array &$data)
@@ -307,7 +333,7 @@ class IndexBiblioModel extends Model
                 $au_all .= $val->name . ' - ';
             }
 
-            $data['supervisor'] = $this->db->escapeString($au_all);
+            $data['supervisor'] = $au_all;
         }
     }
     private function _contributor(int $biblio_id, array &$data)
@@ -332,7 +358,7 @@ class IndexBiblioModel extends Model
                 $au_all .= $val->name . ' - ';
             }
 
-            $data['contributor'] = $this->db->escapeString($au_all);
+            $data['contributor'] = $au_all;
         }
     }
 
@@ -361,7 +387,7 @@ class IndexBiblioModel extends Model
             }
 
             $topic_all = substr_replace($topic_all, '', -3);
-            $data['topic'] = $this->db->escapeString($topic_all);
+            $data['topic'] = $topic_all;
         }
     }
 
@@ -412,7 +438,7 @@ class IndexBiblioModel extends Model
             }
 
             $loc_all = substr_replace($loc_all, '', -3);
-            $data['location'] = $this->db->escapeString($loc_all);
+            $data['location'] = $loc_all;
         }
     }
 
@@ -441,7 +467,7 @@ class IndexBiblioModel extends Model
             }
 
             $colltype_all = substr_replace($colltype_all, '', -3);
-            $data['collection_types'] = $this->db->escapeString($colltype_all);
+            $data['collection_types'] = $colltype_all;
         }
     }
 }

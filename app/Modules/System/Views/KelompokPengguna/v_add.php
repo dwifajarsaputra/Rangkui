@@ -31,13 +31,13 @@
                             <?php foreach ($list_menu as $key => $val): ?>
                                 <tr>
                                     <td>
-                                        <i class="fa <?= $val->icon ?>"></i> <?= $val->title; ?>
+                                        <i class="fa <?= esc($val->icon) ?>"></i> <?= esc($val->title) ?>
                                     </td>
                                     <td class="text-center">
-                                        <input type="checkbox" name="read[]" value="<?= $val->id; ?>">
+                                        <input type="checkbox" name="read[]" value="<?= esc($val->id) ?>">
                                     </td>
                                     <td class="text-center">
-                                        <input type="checkbox" name="write[]" value="<?= $val->id; ?>">
+                                        <input type="checkbox" name="write[]" value="<?= esc($val->id) ?>">
                                     </td>
                                 </tr>
                             <?php endforeach ?>

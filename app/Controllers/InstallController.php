@@ -2,515 +2,359 @@
 
 namespace App\Controllers;
 
-use App\Controllers\BaseController;
+use App\Libraries\SqlImporter;
 use CodeIgniter\API\ResponseTrait;
-use Exception;
+use CodeIgniter\Database\BaseConnection;
+use Throwable;
 
+/**
+ * Wizard instalasi Rangkui (fresh install / upgrade dari SLiMS-Setiadi).
+ *
+ * Rute wizard hanya terdaftar selama aplikasi BELUM terpasang (lihat app/Config/Routes.php).
+ * Setelah sukses, berkas penanda writable/installed.lock dibuat dan folder admin/ dihapus.
+ */
 class InstallController extends BaseController
 {
     use ResponseTrait;
+
+    public const LOCK_FILE = WRITEPATH . 'installed.lock';
+
     public function install()
     {
-        // $this->session->set('dbConfig', null);
         return view('wizard/install_wizard');
     }
 
-    function fresh()
+    public function fresh()
     {
-        if ($this->request->getMethod() == "GET") {
-            $this->session->set('type', 'fresh');
-
-            $data = [];
-            // $data = $this->session?->dbConfig ?? [];
-
-            return view('wizard/step_fresh', $data);
-        } else if ($this->request->getMethod() == "POST") {
-
-            $data = $this->request->getPost();
-            $data['status'] = $this->_checkConnection($data);
-            $this->session->set('dbConfig', $data);
-            return $this->respond($data);
-        }
+        return $this->_step('fresh');
     }
 
-    function upgrade()
+    public function upgrade()
     {
-        if ($this->request->getMethod() == "GET") {
-            $this->session->set('type', 'upgrade');
-
-            $data = [];
-            // $data = $this->session?->dbConfig ?? [];
-
-            return view('wizard/step_upgrade');
-        } else if ($this->request->getMethod() == "POST") {
-
-            $data = $this->request->getPost();
-            $data['connection'] = $this->_checkConnection($data);
-            $this->session->set('dbConfig', $data);
-            return $this->respond($data);
-        }
+        return $this->_step('upgrade');
     }
 
-    function _checkConnection($config)
+    public function type()
     {
-        extract($config);
+        return $this->respond(['type' => $this->session->get('type')]);
+    }
 
-        $connected = "failed";
-        try {
-            $db = \Config\Database::connect([
-                'DSN'      => '',
-                'hostname' => $host,
-                'username' => $username,
-                'password' => $password,
-                'database' => 'mysql',
-                'DBDriver' => 'MySQLi', // Sesuaikan driver database yang digunakan
-                'DBPrefix' => '',
-                'pConnect' => false,
-                'DBDebug'  => (ENVIRONMENT !== 'production'),
-                'charset'  => 'utf8',
-                'DBCollat' => 'utf8_general_ci',
-                'swapPre'  => '',
-                'encrypt'  => false,
-                'compress' => false,
-                'strictOn' => false,
-                'failover' => [],
-                'port'     => (int)$port,
-            ]);
+    public function process()
+    {
+        if (is_file(self::LOCK_FILE)) {
+            return $this->respond(['status' => 'error', 'message' => 'Rangkui sudah terpasang.'], 403);
+        }
 
-            if ($db->simpleQuery('select * from user')) {
-                $connected = "success";
+        $config = $this->session->get('dbConfig');
+        if (! is_array($config) || ($error = $this->_validateConfig($config, $this->session->get('type') === 'fresh')) !== null) {
+            return $this->respond(['status' => 'error', 'message' => $error ?? 'Konfigurasi database belum diisi.']);
+        }
+
+        foreach (['cache', 'logs', 'session', 'uploads/repository', 'backup'] as $dir) {
+            if (! is_dir(WRITEPATH . $dir)) {
+                @mkdir(WRITEPATH . $dir, 0755, true);
             }
-        } catch (\Throwable $th) {
-            $connected = "failed";
         }
 
+        $isUpgrade = $this->session->get('type') === 'upgrade';
 
-        $message = "Database Connection {$connected}";
+        try {
+            $result = $isUpgrade
+                ? $this->_installUpgrade($config)
+                : $this->_installFresh($config);
+        } catch (Throwable $e) {
+            log_message('error', 'Install failed: ' . $e->getMessage());
 
+            return $this->respond(['status' => 'error', 'message' => 'Instalasi gagal: ' . $e->getMessage()]);
+        }
 
-        return $message;
-    }
+        if ($result !== true) {
+            return $this->respond(['status' => 'error', 'message' => $result]);
+        }
 
-    function type()
-    {
+        if (! $this->_writeEnv($config)) {
+            return $this->respond(['status' => 'error', 'message' => 'Gagal menulis berkas .env. Periksa izin tulis folder aplikasi.']);
+        }
+
+        file_put_contents(self::LOCK_FILE, date(DATE_ATOM) . "\n");
+        $this->_deleteFolder(ROOTPATH . 'admin'); // best effort; lock file sudah menutup wizard
+        $this->session->remove(['dbConfig', 'type']);
+
         return $this->respond([
-            'type' => $this->session->type,
+            'status'  => 'success',
+            'message' => $isUpgrade ? 'Upgrade Berhasil' : 'Installation Complete',
         ]);
     }
 
-    function process()
+    // ------------------------------------------------------------------
+
+    private function _step(string $type)
     {
-        $installType = $this->session->type;
+        if ($this->request->getMethod() === 'GET') {
+            $this->session->set('type', $type);
 
-        $cachePath = WRITEPATH . 'cache';
-
-        if (!is_dir($cachePath)) {
-            mkdir($cachePath, 0755, true);
+            return view('wizard/step_' . $type);
         }
 
-        switch ($installType) {
-            case 'fresh':
-                return $this->_installFresh();
-                break;
-            case 'upgrade':
-                return $this->_installUpgrade();
-                break;
+        $config = [
+            'host'           => trim((string) $this->request->getPost('host')),
+            'port'           => (int) $this->request->getPost('port') ?: 3306,
+            'username'       => trim((string) $this->request->getPost('username')),
+            'password'       => (string) $this->request->getPost('password'),
+            'database'       => trim((string) $this->request->getPost('database')),
+            'admin_username' => trim((string) $this->request->getPost('admin_username')),
+            'admin_password' => (string) $this->request->getPost('admin_password'),
+        ];
+        $this->session->set('dbConfig', $config);
+
+        $error  = $this->_validateConfig($config, $type === 'fresh');
+        $status = $error ?? ('Database Connection ' . ($this->_checkConnection($config) ? 'success' : 'failed'));
+
+        // Jangan pernah mengirim balik password ke browser.
+        $shown = [
+            'host'     => $config['host'],
+            'port'     => $config['port'],
+            'username' => $config['username'],
+            'database' => $config['database'],
+        ];
+        if ($type === 'fresh') {
+            $shown['admin_username'] = $config['admin_username'];
         }
+        $shown[$type === 'fresh' ? 'status' : 'connection'] = $status;
+
+        return $this->respond($shown);
     }
 
-    private function _installFresh()
+    private function _validateConfig(array $c, bool $fresh): ?string
     {
-        $config = $this->session->dbConfig;
-
-
-        extract($config);
-
-        $configPath = APPPATH . "Config";
-
-        // Cek apakah semua detail koneksi sudah ada di session
-        if (empty($host) || empty($database) || empty($username) || empty($port)) {
-            return "Database configuration error";
+        if ($c['host'] === '' || $c['username'] === '' || $c['database'] === '') {
+            return 'Host, username, dan nama database wajib diisi.';
+        }
+        if (! preg_match('/^[A-Za-z0-9._-]+$/', $c['host'])) {
+            return 'Host database tidak valid.';
+        }
+        if (! preg_match('/^[A-Za-z0-9_]{1,64}$/', $c['database'])) {
+            return 'Nama database hanya boleh huruf, angka, dan garis bawah.';
+        }
+        if ($c['port'] < 1 || $c['port'] > 65535) {
+            return 'Port database tidak valid.';
+        }
+        if ($fresh) {
+            if (! preg_match('/^[A-Za-z0-9_.-]{3,50}$/', $c['admin_username'] ?? '')) {
+                return 'Username admin 3–50 karakter (huruf, angka, titik, minus, garis bawah).';
+            }
+            if (strlen($c['admin_password'] ?? '') < 8) {
+                return 'Password admin minimal 8 karakter.';
+            }
         }
 
-        // Buat koneksi database manual menggunakan detail dari session
-        $db = \Config\Database::connect([
+        return null;
+    }
+
+    private function _connect(array $c, ?string $database): BaseConnection
+    {
+        return \Config\Database::connect([
             'DSN'      => '',
-            'hostname' => $host,
-            'username' => $username,
-            'password' => $password,
-            'database' => 'mysql',
-            'DBDriver' => 'MySQLi', // Sesuaikan driver database yang digunakan
+            'hostname' => $c['host'],
+            'username' => $c['username'],
+            'password' => $c['password'],
+            'database' => $database ?? '',
+            'DBDriver' => 'MySQLi',
             'DBPrefix' => '',
             'pConnect' => false,
-            'DBDebug'  => (ENVIRONMENT !== 'production'),
-            'charset'  => 'utf8',
-            'DBCollat' => 'utf8_general_ci',
-            'swapPre'  => '',
-            'encrypt'  => false,
-            'compress' => false,
-            'strictOn' => false,
-            'failover' => [],
-            'port'     => (int)$port,
-        ]);
+            'DBDebug'  => true,
+            'charset'  => 'utf8mb4',
+            'DBCollat' => 'utf8mb4_general_ci',
+            'port'     => (int) $c['port'],
+        ], false);
+    }
 
-        $db->query("CREATE DATABASE IF NOT EXISTS {$database};");
-        // Path file backup SQL
-        $filePath = ROOTPATH . 'admin/brantas.sql'; //
-
-        $settings = include(ROOTPATH . "admin/setting.php");
-        // Baca isi file SQL
-        $sqlContent = file_get_contents($filePath);
-
-        if ($sqlContent === false) {
-            return "File SQL tidak ditemukan atau tidak bisa dibaca.";
-        }
-
+    private function _checkConnection(array $c): bool
+    {
         try {
+            // Cukup SELECT 1: user hosting biasa tidak punya akses ke tabel mysql.user.
+            return (bool) $this->_connect($c, null)->simpleQuery('SELECT 1');
+        } catch (Throwable $e) {
+            return false;
+        }
+    }
 
-            $db = \Config\Database::connect([
-                'DSN'      => '',
-                'hostname' => $host,
-                'username' => $username,
-                'password' => $password,
-                'database' => $database,
-                'DBDriver' => 'MySQLi', // Sesuaikan driver database yang digunakan
-                'DBPrefix' => '',
-                'pConnect' => false,
-                'DBDebug'  => (ENVIRONMENT !== 'production'),
-                'charset'  => 'utf8',
-                'DBCollat' => 'utf8_general_ci',
-                'swapPre'  => '',
-                'encrypt'  => false,
-                'compress' => false,
-                'strictOn' => false,
-                'failover' => [],
-                'port'     => (int)$port,
-            ]);
+    private function _runSqlFile(BaseConnection $db, string $file): void
+    {
+        $sql = @file_get_contents($file);
+        if ($sql === false) {
+            throw new \RuntimeException('Berkas SQL tidak ditemukan: ' . basename($file));
+        }
+        foreach (SqlImporter::split($sql) as $statement) {
+            $db->query($statement);
+        }
+    }
 
-            $queries = explode(';', $sqlContent); // Memecah setiap query berdasarkan tanda ';'
-            foreach ($queries as $query) {
-                $query = trim($query);
-                if (!empty($query)) {
-                    $db->query($query);  // Jalankan query
+    /**
+     * @return true|string
+     */
+    private function _installFresh(array $c)
+    {
+        $server = $this->_connect($c, null);
+        // Nama database sudah divalidasi dengan regex ketat di _validateConfig().
+        $server->query('CREATE DATABASE IF NOT EXISTS `' . $c['database'] . '` CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci');
 
-                }
-            }
-
-            $s = $db->table('setting');
-            $sql = "INSERT INTO setting (setting_id, setting_name, setting_value)";
-            $sql .= " Values ";
-            foreach ($settings['settings'] as $key => $setting) {
-                $data = [
-                    'setting_id' => $setting['id'],
-                    'setting_name' => $setting['key'],
-                    'setting_value' => $setting['value'],
-                ];
-
-                // Insert data ke dalam tabel
-                $s->insert($data);
-            }
-
-            $u = $db->table('user');
-            foreach ($settings['users'] as $key => $user) {
-                $u->insert($user);
-            }
-
-            $this->_updateEnv();
-            /**
-             * Comment when testing
-             */
-
-            // Attempt to delete the admin folder with error handling
-            if (!$this->_deleteFolder(ROOTPATH . 'admin')) {
-                return $this->respond([
-                    'status' => 'error',
-                    'message' => 'Failed to delete admin folder. Check permissions.'
-                ]);
-            }
-
-            // Replace content of Routes.php with content from Routes.local.php
-            $sourceFilePath = $configPath . '/Routes.local.php';
-            $targetFilePath = $configPath . '/Routes.php';
-            if (file_exists($sourceFilePath)) {
-                $content = file_get_contents($sourceFilePath);
-                if ($content !== false) {
-                    if (file_put_contents($targetFilePath, $content) === false) {
-                        return $this->respond([
-                            'status' => 'error',
-                            'message' => 'Failed to update Routes.php with content from Routes.local.php. Check permissions.'
-                        ]);
-                    }
-                } else {
-                    return $this->respond([
-                        'status' => 'error',
-                        'message' => 'Failed to read content from Routes.local.php.'
-                    ]);
-                }
-            }
-        } catch (\Exception $e) {
-            return "Error pada : " . $e->getMessage();  // Jika terjadi error, hentikan dan tampilkan pesan error
+        $db = $this->_connect($c, $c['database']);
+        if (in_array('biblio', $db->listTables(), true)) {
+            return 'Database "' . $c['database'] . '" sudah berisi data. Gunakan opsi Upgrade, atau pilih database kosong.';
         }
 
-        $status = "success";
-        $message = "Installation Complete";
-        /**
-         * Comment when testing
-         */
+        $this->_runSqlFile($db, ROOTPATH . 'admin/brantas.sql');
 
-        // register_shutdown_function(function () {
-        //     $filePath = APPPATH . 'Controllers/InstallController.php';
+        $settings = include ROOTPATH . 'admin/setting.php';
+        foreach ($settings['settings'] as $setting) {
+            $db->table('setting')->insert([
+                'setting_id'    => $setting['id'],
+                'setting_name'  => $setting['key'],
+                'setting_value' => $setting['value'],
+            ]);
+        }
 
-        //     if (file_exists($filePath)) {
-        //         unlink($filePath);
-        //     }
-        // });
+        foreach ($settings['users'] as $user) {
+            // Akun admin memakai kredensial yang diisi di wizard, bukan admin/admin.
+            $user['username']      = $c['admin_username'];
+            $user['passwd']        = password_hash($c['admin_password'], PASSWORD_DEFAULT);
+            $user['last_login']    = null;
+            $user['last_login_ip'] = null;
+            $user['input_date']    = date('Y-m-d');
+            $user['last_update']   = date('Y-m-d');
+            $db->table('user')->insert($user);
+        }
 
-        $resp = [
-            'status' => $status,
-            'message' => $message
+        return true;
+    }
+
+    /**
+     * @return true|string
+     */
+    private function _installUpgrade(array $c)
+    {
+        $db = $this->_connect($c, $c['database']);
+        if (! in_array('biblio', $db->listTables(), true)) {
+            return 'Database "' . $c['database'] . '" tidak berisi data SLiMS/Setiadi untuk di-upgrade.';
+        }
+
+        $this->_runSqlFile($db, ROOTPATH . 'admin/upgrade.sql');
+        $this->_migrateGroupAccess($db);
+
+        return true;
+    }
+
+    /**
+     * Padanan nama modul SLiMS (mst_module.module_name) → judul menu utama Rangkui (mst_menu.title).
+     * Modul tanpa padanan (circulation, stock_take, serial_control) tidak dibawa.
+     */
+    private const SLIMS_MODULE_MAP = [
+        'bibliography' => 'ETD',
+        'membership'   => 'Membership',
+        'master_file'  => 'Master File',
+        'system'       => 'System',
+        'reporting'    => 'Reporting',
+    ];
+
+    /**
+     * Petakan hak akses grup dari modul SLiMS lama (mst_module) ke menu Rangkui (mst_menu).
+     *
+     * Versi lama menyusun query UPDATE ini tetapi variabelnya tertimpa sebelum dieksekusi,
+     * sehingga hak akses grup non-admin tidak pernah dipetakan (ID modul lama justru menunjuk
+     * menu Rangkui yang tidak terkait). Dilakukan di PHP agar portabel di MySQL & MariaDB.
+     */
+    private function _migrateGroupAccess(BaseConnection $db): void
+    {
+        $menuIdByTitle = [];
+        foreach ($db->table('mst_menu')->select('id, title')->where('level', 1)->get()->getResult() as $menu) {
+            $menuIdByTitle[strtolower($menu->title)] = (int) $menu->id;
+        }
+
+        $map = [];
+        if (in_array('mst_module', $db->listTables(), true)) {
+            foreach ($db->table('mst_module')->select('module_id, module_name')->get()->getResult() as $module) {
+                $name  = strtolower((string) $module->module_name);
+                $title = strtolower(self::SLIMS_MODULE_MAP[$name] ?? $name);
+                if (isset($menuIdByTitle[$title])) {
+                    $map[(int) $module->module_id] = $menuIdByTitle[$title];
+                }
+            }
+        }
+
+        $access = [];
+        foreach ($db->table('group_access')->get()->getResultArray() as $row) {
+            $group = (int) $row['group_id'];
+            if ($group === 1) {
+                continue; // admin di-set ulang di bawah
+            }
+            $module = $map[(int) $row['module_id']] ?? null;
+            if ($module === null) {
+                continue; // modul SLiMS tanpa padanan di Rangkui
+            }
+            $key          = $group . ':' . $module;
+            $access[$key] = [
+                'group_id'  => $group,
+                'module_id' => $module,
+                'r'         => max((int) ($access[$key]['r'] ?? 0), (int) $row['r']),
+                'w'         => max((int) ($access[$key]['w'] ?? 0), (int) $row['w']),
+            ];
+        }
+
+        // Grup admin (1) mendapat akses penuh ke semua menu.
+        foreach ($db->table('mst_menu')->select('id')->get()->getResultArray() as $menu) {
+            $access['1:' . $menu['id']] = ['group_id' => 1, 'module_id' => (int) $menu['id'], 'r' => 1, 'w' => 1];
+        }
+
+        $db->transStart();
+        $db->table('group_access')->truncate();
+        $db->table('group_access')->insertBatch(array_values($access));
+        $db->transComplete();
+    }
+
+    private function _writeEnv(array $c): bool
+    {
+        $envFile = ROOTPATH . '.env';
+        $content = is_file($envFile) ? file_get_contents($envFile) : @file_get_contents(ROOTPATH . '.env.example');
+        if ($content === false) {
+            $content = '';
+        }
+
+        $baseURL = rtrim(site_url('/'), '/') . '/';
+        $values  = [
+            'CI_ENVIRONMENT'              => 'production',
+            'app.baseURL'                 => $baseURL,
+            'database.default.hostname'   => $c['host'],
+            'database.default.database'   => $c['database'],
+            'database.default.username'   => $c['username'],
+            'database.default.password'   => $c['password'],
+            'database.default.port'       => (string) $c['port'],
+            'database.default.DBDebug'    => 'false',
         ];
+        if (! preg_match('/^encryption\.key\s*=\s*\S+/m', $content)) {
+            $values['encryption.key'] = 'hex2bin:' . bin2hex(random_bytes(32));
+        }
 
-        return $this->respond($resp);
+        foreach ($values as $key => $value) {
+            $content = env_set($content, $key, $value);
+        }
+
+        // .env.example tetap utuh di repositori; .env dibuat sebagai salinan terpisah.
+        return file_put_contents($envFile, $content) !== false;
     }
 
-    private function _installUpgrade()
+    private function _deleteFolder(string $folderPath): bool
     {
-
-        $config = $this->session->dbConfig;
-        extract($config);
-
-        // Cek apakah semua detail koneksi sudah ada di session
-        if (empty($host) || empty($database) || empty($username) || empty($port)) {
-            return "Database configuration error";
+        if (! is_dir($folderPath)) {
+            return false;
         }
-
-        $this->_updateEnv();
-
-        // Path file backup SQL
-        $filePath = ROOTPATH . 'admin/upgrade.sql'; //
-
-        // Baca isi file SQL
-        $sqlContent = file_get_contents($filePath);
-
-        if ($sqlContent === false) {
-            return "File SQL tidak ditemukan atau tidak bisa dibaca.";
-        }
-
-
-        try {
-            $output = [];
-            $statusCode = 0;
-
-            $db = \Config\Database::connect([
-                'DSN'      => '',
-                'hostname' => $host,
-                'username' => $username,
-                'password' => $password,
-                'database' => $database,
-                'DBDriver' => 'MySQLi', // Sesuaikan driver database yang digunakan
-                'DBPrefix' => '',
-                'pConnect' => false,
-                'DBDebug'  => (ENVIRONMENT !== 'production'),
-                'charset'  => 'utf8',
-                'DBCollat' => 'utf8_general_ci',
-                'swapPre'  => '',
-                'encrypt'  => false,
-                'compress' => false,
-                'strictOn' => false,
-                'failover' => [],
-                'port'     => (int)$port,
-            ]);
-
-
-            $queries = explode(';', $sqlContent); // Memecah setiap query berdasarkan tanda ';'
-            foreach ($queries as $query) {
-                $query = trim($query);
-                if (!empty($query)) {
-                    $db->query($query);  // Jalankan query
-
-                }
-            }
-
-            $sql = "ALTER TABLE group_access DROP PRIMARY KEY;";
-            $db->query($sql);
-
-            $sql = "UPDATE
-                        group_access ga
-                    JOIN mst_module mm2 ON
-                        mm2.module_id = ga.module_id
-                    JOIN mst_menu mm ON
-                        mm.title = mm2.module_name 
-                    SET
-                        ga.module_id = mm.id
-                    WHERE LEVEL = 1 and mm.id NOT IN(
-                        SELECT module_id
-                        FROM group_access
-                        where
-                            group_id = 1
-                    );";
-
-            $sql = "insert into
-                        group_access (group_id, module_id, r, w)
-                    select 1, id, 1, 1
-                    FROM mst_menu
-                    where
-                        id NOT IN(
-                            SELECT module_id
-                            FROM group_access
-                            where
-                                group_id = 1
-                        );";
-            $db->query($sql);
-
-            $sql = "ALTER TABLE group_access ADD PRIMARY KEY (`group_id`, `module_id`);";
-            $db->query($sql);
-
-            /**
-             * Comment when testing
-             */
-
-            // register_shutdown_function(function () {
-            //     $filePath = APPPATH . 'Controllers/InstallController.php';
-
-            //     if (file_exists($filePath)) {
-            //         unlink($filePath);
-            //     }
-            // });
-
-            // Attempt to delete the admin folder with error handling
-            if (!$this->_deleteFolder(ROOTPATH . 'admin')) {
-                return $this->respond([
-                    'status' => 'error',
-                    'message' => 'Failed to delete admin folder. Check permissions.'
-                ]);
-            }
-
-            $configPath = APPPATH . "Config";
-            $sourceFilePath = $configPath . '/Routes.local.php';
-            $targetFilePath = $configPath . '/Routes.php';
-            if (file_exists($sourceFilePath)) {
-                $content = file_get_contents($sourceFilePath);
-                if ($content !== false) {
-                    if (file_put_contents($targetFilePath, $content) === false) {
-                        return $this->respond([
-                            'status' => 'error',
-                            'message' => 'Failed to update Routes.php with content from Routes.local.php. Check permissions.'
-                        ]);
-                    }
-                } else {
-                    return $this->respond([
-                        'status' => 'error',
-                        'message' => 'Failed to read content from Routes.local.php.'
-                    ]);
-                }
-            }
-        } catch (Exception $e) {
-            return $this->respond([
-                'status' => 'error',
-                'Message' => $e->getMessage()
-            ]);
-        }
-
-        return $this->respond([
-            'status' => 'success',
-            'Message' => 'Upgrade Berhasil',
-        ]);
-    }
-
-    function _deleteFolder($folderPath)
-    {
-        if (is_dir($folderPath)) {
-            // Ensure the folder is writable
-            if (!is_writable($folderPath)) {
+        foreach (array_diff(scandir($folderPath), ['.', '..']) as $file) {
+            $path = $folderPath . DIRECTORY_SEPARATOR . $file;
+            if (is_dir($path) ? ! $this->_deleteFolder($path) : ! @unlink($path)) {
                 return false;
             }
-            // Hapus semua file dan subfolder di dalam folder
-            $files = array_diff(scandir($folderPath), ['.', '..']);
-            foreach ($files as $file) {
-                $filePath = $folderPath . DIRECTORY_SEPARATOR . $file;
-                if (is_dir($filePath)) {
-                    // Panggil recursive function jika ini subfolder
-                    if (!$this->_deleteFolder($filePath)) {
-                        return false;
-                    }
-                } else {
-                    // Ensure the file is writable before deletion
-                    if (!is_writable($filePath) || !unlink($filePath)) {
-                        return false;
-                    }
-                }
-            }
-            // Hapus folder
-            return rmdir($folderPath);
-        }
-        return false;
-    }
-
-    function _updateEnv()
-    {
-        $config = $this->session->dbConfig;
-        extract($config);
-
-        if (empty($host) || empty($database) || empty($username) || empty($port)) {
-            return "Database configuration error";
         }
 
-        // Path ke file .env dan .env.example
-        $envFilePath = ROOTPATH . '.env';
-        $envLocalFilePath = ROOTPATH . '.env.example';
-
-        // Merename file .env.example menjadi .env
-        if (file_exists($envLocalFilePath)) {
-
-            $envContent = file_get_contents($envLocalFilePath);
-
-            // Mengganti nilai dalam file .env
-            $patternHostname  = "/^database\.default\.hostname\s*=\s*([^\r\n]*)/m";
-            $patternDatabase  = "/^database\.default\.database\s*=\s*([^\r\n]*)/m";
-            $patternUsername  = "/^database\.default\.username\s*=\s*([^\r\n]*)/m";
-            $patternPassword  = "/^database\.default\.password\s*=\s*([^\r\n]*)/m";
-            $patternPort      = "/^database\.default\.port\s*=\s*([^\r\n]*)/m";
-
-            // Jika hostname ada dalam file, lakukan penggantian
-            if (preg_match($patternHostname, $envContent)) {
-                // Update nilai hostname yang ada
-                $envContent = preg_replace($patternHostname, 'database.default.hostname=' . $host, $envContent);
-            }
-
-            // Jika database ada dalam file, lakukan penggantian
-            if (preg_match($patternDatabase, $envContent)) {
-                // Update nilai database yang ada
-                $envContent = preg_replace($patternDatabase, 'database.default.database=' . $database, $envContent);
-            }
-
-            if (preg_match($patternUsername, $envContent)) {
-                $envContent = preg_replace($patternUsername, 'database.default.username=' . $username, $envContent);
-            } else {
-                // Jika username tidak ditemukan, tambahkan setelah database.default.database
-                if (preg_match($patternDatabase, $envContent, $matches)) {
-                    // Temukan posisi database.default.database
-                    $pos = strpos($envContent, $matches[0]);
-                    // Tambahkan username setelahnya
-                    $insertPos = $pos + strlen($matches[0]);
-                    $envContent = substr_replace($envContent, "\ndatabase.default.username=" . $username, $insertPos, 0);
-                }
-            }
-
-            // Jika password ada dalam file, lakukan penggantian
-            if (preg_match($patternPassword, $envContent)) {
-                // Update nilai password yang ada
-                $envContent = preg_replace($patternPassword, 'database.default.password=' . $password, $envContent);
-            }
-
-            // Jika port ada dalam file, lakukan penggantian
-            if (preg_match($patternPort, $envContent)) {
-                // Update nilai port yang ada
-                $envContent = preg_replace($patternPort, 'database.default.port=' . $port, $envContent);
-            }
-            // Menyimpan kembali isi yang sudah diperbarui ke file .env
-            file_put_contents($envLocalFilePath, $envContent);
-
-            rename($envLocalFilePath, $envFilePath);
-        }
+        return @rmdir($folderPath);
     }
 }

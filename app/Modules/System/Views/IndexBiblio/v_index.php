@@ -3,7 +3,7 @@
         <h2>ETD Index</h2>
         <ul class="nav navbar-right panel_toolbox">
             <li>
-                <button onclick="moveTo('<?= base_url('sistem/indeks-biblio/delete'); ?>', 'Are you sure, want to empty index ?')" class="btn btn-sm text-white btn-danger" ">
+                <button onclick="postTo('<?= base_url('sistem/indeks-biblio/delete'); ?>', 'Are you sure, want to empty index ?')" class="btn btn-sm text-white btn-danger" ">
                     <i class=" fa fa-trash"></i> Empty Index
                 </button>
             </li>
@@ -13,7 +13,7 @@
                 </button>
             </li>
             <li>
-                <button onclick="moveTo('<?= base_url('sistem/indeks-biblio/reindex'); ?>')" class="btn btn-sm text-white btn-info">
+                <button onclick="postTo('<?= base_url('sistem/indeks-biblio/reindex'); ?>')" class="btn btn-sm text-white btn-info">
                     <i class="fa fa-refresh"></i> Update Index
                 </button>
             </li>
@@ -23,9 +23,9 @@
     <div class="x_content">
         <p>Bibliographic Index will speed up catalog search</p>
         <ul>
-            <li>Total data on ETD: <?= $biblio_total; ?> records.</li>
-            <li>Total indexed data: <?= $idx_total; ?> records.</li>
-            <li>Unidexed data: <?= $unidx_total; ?> records.</li>
+            <li>Total data on ETD: <?= esc($biblio_total) ?> records.</li>
+            <li>Total indexed data: <?= esc($idx_total) ?> records.</li>
+            <li>Unidexed data: <?= esc($unidx_total) ?> records.</li>
         </ul>
     </div>
 </div>

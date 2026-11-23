@@ -28,23 +28,30 @@ function slim_alert($status = 'success', $message = 'Berhasil!', $text = null)
 function TanggalIndo($date, $format = '')
 {
     $BulanIndo = ["", "Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
-    $split = explode('-', $date);
+    $split     = explode('-', substr((string) $date, 0, 10));
+    if (count($split) !== 3 || ! isset($BulanIndo[(int) $split[1]]) || (int) $split[1] === 0) {
+        return '-';
+    }
     if ($format == 'd M Y') {
         return $split[0] . ' ' . $BulanIndo[(int) $split[1]] . ' ' . $split[2];
-    } else {
-        return $split[2] . ' ' . $BulanIndo[(int) $split[1]] . ' ' . $split[0];
     }
+
+    return $split[2] . ' ' . $BulanIndo[(int) $split[1]] . ' ' . $split[0];
 }
 
 /**
+ * Format "YYYY-MM-DD[ HH:MM:SS]" menjadi "DD Mmm YYYY". Mengembalikan "-" untuk tanggal kosong/tidak valid.
+ *
  * @param $date
- * @return mixed
+ * @return string
  */
 function datetimeIdn($date)
 {
     $BulanIndo = ["", "Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agu", "Sep", "Okt", "Nov", "Des"];
-    $split     = explode(' ', $date);
-    $spli      = explode('-', $split[0]);
+    $spli      = explode('-', substr((string) $date, 0, 10));
+    if (count($spli) !== 3 || (int) $spli[1] < 1 || (int) $spli[1] > 12) {
+        return '-';
+    }
 
     return $spli[2] . ' ' . $BulanIndo[(int) $spli[1]] . ' ' . $spli[0];
 }
@@ -78,18 +85,32 @@ if (!function_exists('cekerror')) {
 }
 
 if (!function_exists('delImage')) {
+    /**
+     * Hapus berkas unggahan. $targetPath relatif terhadap folder uploads, mis. "images/docs" atau "repository".
+     * Lampiran (repository) dicari di writable/uploads lebih dulu, lalu di public/uploads (berkas lama).
+     *
+     * @return bool|string true bila terhapus, false bila gagal, "-1." bila berkas tidak ada
+     */
     function delImage($targetPath, $imageName)
     {
-        $file_path =  FCPATH . 'uploads\\' . $targetPath . '\\' . $imageName;
-        if (file_exists($file_path)) {
-            if (unlink($file_path)) {
-                return TRUE;
-            } else {
-                return FALSE;
-            }
-        } else {
-            return "-1.";
+        $name = basename((string) $imageName);
+        $dir  = trim(str_replace('\\', '/', (string) $targetPath), '/');
+        if ($name === '' || $name === '.' || $name === '..') {
+            return '-1.';
         }
+
+        $candidates = [FCPATH . 'uploads/' . $dir . '/' . $name];
+        if ($dir === 'repository') {
+            array_unshift($candidates, WRITEPATH . 'uploads/repository/' . $name);
+        }
+
+        foreach ($candidates as $file_path) {
+            if (is_file($file_path)) {
+                return unlink($file_path);
+            }
+        }
+
+        return '-1.';
     }
 }
 
@@ -159,5 +180,47 @@ if (!function_exists('getDatas')) {
             lq();
         }
         return $hasil;
+    }
+}
+
+if (! function_exists('post_only')) {
+    /**
+     * Ambil hanya field POST yang disebutkan (pengganti aman untuk extract($_POST)).
+     * Field yang tidak dikirim tetap tidak terdefinisi, sama seperti perilaku sebelumnya.
+     *
+     * @param list<string> $keys
+     */
+    function post_only(array $keys): array
+    {
+        $post = service('request')->getPost() ?? [];
+
+        return array_intersect_key(is_array($post) ? $post : [], array_flip($keys));
+    }
+}
+
+if (! function_exists('env_set')) {
+    /**
+     * Set/ganti satu kunci di isi berkas .env secara aman.
+     * Nilai selalu dikutip ganda & di-escape, baris baru dibuang (mencegah injeksi baris .env).
+     */
+    function env_set(string $content, string $key, ?string $value): string
+    {
+        $value  = str_replace(["\r", "\n", "\0"], '', (string) $value);
+        $quoted = '"' . addcslashes($value, '"\\') . '"';
+        $line   = $key . ' = ' . $quoted;
+        $k      = preg_quote($key, '/');
+
+        // Utamakan baris aktif; bila tidak ada, aktifkan baris yang dikomentari; bila tidak ada juga, tambahkan.
+        foreach (['/^\s*' . $k . '\s*=.*$/m', '/^#\s*' . $k . '\s*=.*$/m'] as $regex) {
+            if (preg_match($regex, $content) === 1) {
+                $content = preg_replace_callback($regex, static fn () => $line, $content, 1);
+                // Buang duplikat aktif lain agar nilai tidak ambigu.
+                $first = strpos($content, $line) + strlen($line);
+
+                return substr($content, 0, $first) . preg_replace('/^\s*' . $k . '\s*=.*\R?/m', '', substr($content, $first));
+            }
+        }
+
+        return rtrim($content, "\n") . "\n" . $line . "\n";
     }
 }

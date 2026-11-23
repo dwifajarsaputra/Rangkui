@@ -5,10 +5,10 @@ const showModal = (e = null) => {
   if (e !== null) {
     $('#myModalLabel').text('Update Expired Dates')
     $('#exp_date').val(e.expire_date)
-    $('.hidden').html(
-      `<input type="hidden" value="${e.member_id}" name="member_id">` +
-        `<input type="hidden" value="${e.member_name}" name="member_name">`
-    )
+    $('.hidden')
+      .empty()
+      .append($('<input>', { type: 'hidden', name: 'member_id', value: e.member_id }))
+      .append($('<input>', { type: 'hidden', name: 'member_name', value: e.member_name }))
   }
   $('#modal_action').modal('show')
 }

@@ -13,32 +13,32 @@
                                 <img class="img-responsive avatar-view img-cover" src="<?= base_url('uploads/images/persons/' . $data->user_image) ?>" alt="Avatar" title="Change the avatar">
                             </div>
                         </div>
-                        <h3><?= $data->realname ?></h3>
+                        <h3><?= esc($data->realname) ?></h3>
                         <ul class="list-unstyled user_data">
-                            <li><b>Username</b> : <?= $data->username ?></li>
-                            <li><b>Email</b> : <?= $data->email ?></li>
+                            <li><b>Username</b> : <?= esc($data->username) ?></li>
+                            <li><b>Email</b> : <?= esc($data->email) ?></li>
                             <li><b>Tipe Keanggotaan</b> : <?= getTypeUser($data->user_type) ?></li>
                             <li class="text-center">
-                                <a class="mx-1" href="https://facebook.com/<?= $data->social_media['fb'] ?? "" ?>"><i class="fa fa-2x fa-facebook-square"></i></a>
-                                <a class="mx-1" href="https://x.com/<?= $data->social_media['tw'] ?? "" ?>"><i class="fa fa-2x fa-twitter-square"></i></a>
-                                <a class="mx-1" href="https://linkedin.com/<?= $data->social_media['li'] ?? "" ?>"><i class="fa fa-2x fa-linkedin-square"></i></a>
-                                <a class="mx-1" href="https://reddit.com/user/<?= $data->social_media['rd'] ?? "" ?>"><i class="fa fa-2x fa-reddit-square"></i></a>
-                                <a class="mx-1" href="https://pintestest.com/<?= $data->social_media['pn'] ?? "" ?>"><i class="fa fa-2x fa-pinterest-square"></i></a>
-                                <a class="mx-1" href="https://plus.google.com/<?= $data->social_media['gp'] ?? "" ?>"><i class="fa fa-2x fa-google-plus-square"></i></a>
-                                <a class="mx-1" href="https://youtube.com/<?= $data->social_media['pn'] ?? "" ?>"><i class="fa fa-2x fa-youtube-play"></i></a>
-                                <a class="mx-1" href="<?= $data->social_media['bl'] ?? "" ?>"><i class="fa fa-2x fa-pencil-square"></i></a>
-                                <a class="mx-1" href="https://yahoo.com/<?= $data->social_media['ym'] ?? "" ?>"><i class="fa fa-2x fa-yahoo"></i></a>
+                                <a class="mx-1" href="https://facebook.com/<?= esc($data->social_media['fb'] ?? "") ?>"><i class="fa fa-2x fa-facebook-square"></i></a>
+                                <a class="mx-1" href="https://x.com/<?= esc($data->social_media['tw'] ?? "") ?>"><i class="fa fa-2x fa-twitter-square"></i></a>
+                                <a class="mx-1" href="https://linkedin.com/<?= esc($data->social_media['li'] ?? "") ?>"><i class="fa fa-2x fa-linkedin-square"></i></a>
+                                <a class="mx-1" href="https://reddit.com/user/<?= esc($data->social_media['rd'] ?? "") ?>"><i class="fa fa-2x fa-reddit-square"></i></a>
+                                <a class="mx-1" href="https://pintestest.com/<?= esc($data->social_media['pn'] ?? "") ?>"><i class="fa fa-2x fa-pinterest-square"></i></a>
+                                <a class="mx-1" href="https://plus.google.com/<?= esc($data->social_media['gp'] ?? "") ?>"><i class="fa fa-2x fa-google-plus-square"></i></a>
+                                <a class="mx-1" href="https://youtube.com/<?= esc($data->social_media['pn'] ?? "") ?>"><i class="fa fa-2x fa-youtube-play"></i></a>
+                                <a class="mx-1" href="<?= esc($data->social_media['bl'] ?? "") ?>"><i class="fa fa-2x fa-pencil-square"></i></a>
+                                <a class="mx-1" href="https://yahoo.com/<?= esc($data->social_media['ym'] ?? "") ?>"><i class="fa fa-2x fa-yahoo"></i></a>
                             </li>
                         </ul>
 
-                        <button class="btn btn-info btn-flat btn-sm btn-block" onclick='showModal(<?= json_encode($data) ?>)'><i class="fa fa-edit m-right-xs"></i> Edit Profile</button>
+                        <button class="btn btn-info btn-flat btn-sm btn-block" onclick='showModal(<?= json_encode($data, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>)'><i class="fa fa-edit m-right-xs"></i> Edit Profile</button>
                         <hr />
 
                         <h4>Informasi</h4>
                         <ul class="list-unstyled user_data">
-                            <li><b>Registered</b> : <?= $data->input_date ?></li>
-                            <li><b>last Update</b> : <?= $data->last_update ?></li>
-                            <li><b>last Login</b> : <?= $data->last_login ?></li>
+                            <li><b>Registered</b> : <?= esc($data->input_date) ?></li>
+                            <li><b>last Update</b> : <?= esc($data->last_update) ?></li>
+                            <li><b>last Login</b> : <?= esc($data->last_login) ?></li>
                         </ul>
                     </div>
                 </div>
@@ -72,7 +72,7 @@
                     </div>
                     <div class="form-group">
                         <label for="user_type">Tipe Keanggotaan*</label>
-                        <select name="user_type" id="user_type" class="form-control" required>
+                        <select id="user_type" class="form-control" disabled title="Tipe pengguna hanya dapat diubah oleh admin">
                             <option value="1">Pustakawan</option>
                             <option value="2">Pustakawan</option>
                             <option value="3">Staff Perpustakaan</option>

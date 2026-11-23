@@ -32,7 +32,7 @@ class ReportRecapController extends BaseController
     function filter()
     {
         if ($this->input->isAjax()) {
-            extract($this->input->getPost());
+            extract(post_only(['filter']), EXTR_SKIP);
 
             $response = [
                 'status' => 'error',

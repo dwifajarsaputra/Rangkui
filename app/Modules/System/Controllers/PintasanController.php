@@ -51,7 +51,7 @@ class PintasanController extends BaseController
         global $module;
         $module = get_current_module();
 
-        extract($this->input->getPost());
+        extract(post_only(['id']), EXTR_SKIP);
 
         $pintasan = new PintasanModel();
         $list_sub_menu = $pintasan->listSubMenu($id);
@@ -68,7 +68,7 @@ class PintasanController extends BaseController
             $list_sc = [];
 
             if (!empty(trim($sc_setting->setting_value))) {
-                $list_sc = array_column(unserialize($sc_setting->setting_value), "title");
+                $list_sc = array_column(unserialize($sc_setting->setting_value, ['allowed_classes' => ['stdClass']]), "title");
             }
 
 
@@ -88,7 +88,7 @@ class PintasanController extends BaseController
 
     function add()
     {
-        extract($this->input->getPost());
+        extract(post_only(['key', 'sub_list', 'val']), EXTR_SKIP);
 
         $this->db->transBegin();
 
@@ -110,7 +110,7 @@ class PintasanController extends BaseController
             ->setting_value;
 
         if (!empty(trim($old_sc))) {
-            $ar_old_sc = unserialize($old_sc);
+            $ar_old_sc = unserialize($old_sc, ['allowed_classes' => ['stdClass']]);
             $existing_sc = array_column($ar_old_sc, "id");
 
             foreach ($data as $val) {
@@ -148,7 +148,7 @@ class PintasanController extends BaseController
 
     function delete()
     {
-        extract($this->input->getPost());
+        extract(post_only(['row', 'sub_list']), EXTR_SKIP);
 
         $this->db->transBegin();
 
@@ -157,7 +157,7 @@ class PintasanController extends BaseController
             ->get()
             ->getRow();
 
-        $list_sc = unserialize($sc->setting_value);
+        $list_sc = unserialize($sc->setting_value, ['allowed_classes' => ['stdClass']]);
 
         $total = count($list_sc);
         if ($total > 1) {

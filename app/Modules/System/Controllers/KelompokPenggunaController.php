@@ -51,7 +51,7 @@ class KelompokPenggunaController extends BaseController
 
     function save()
     {
-        extract($this->input->getPost());
+        extract(post_only(['module_id', 'read', 'username', 'write']), EXTR_SKIP);
 
         $list_user_group = [];
         $modules = array_unique(array_merge($write, $read));
@@ -124,7 +124,7 @@ class KelompokPenggunaController extends BaseController
 
     function update()
     {
-        extract($this->input->getPost());
+        extract(post_only(['module_id', 'read', 'w_id', 'write']), EXTR_SKIP);
 
         $list_user_group = [];
         $modules = array_unique(array_merge($write, $read));

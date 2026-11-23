@@ -44,14 +44,14 @@
                         ?>
                             <tr>
                                 <td><?= $i++ ?></td>
-                                <td><?= $value->topic ?></td>
-                                <td><?= $value->classification ?></td>
-                                <td><?= $type ?></td>
-                                <td><?= $value->auth_list ?></td>
-                                <td><?= $value->last_update ?></td>
+                                <td><?= esc($value->topic) ?></td>
+                                <td><?= esc($value->classification) ?></td>
+                                <td><?= esc($type) ?></td>
+                                <td><?= esc($value->auth_list) ?></td>
+                                <td><?= esc($value->last_update) ?></td>
                                 <td>
-                                    <button type="button" class="btn btn-sm btn-info" onclick='showModal(<?= json_encode($value) ?>)'><i class="fa fa-pencil"></i></button>
-                                    <button type="button" class="btn btn-sm btn-danger" onclick="showConfirm(<?= $value->topic_id ?>)"><i class="fa fa-trash"></i></button>
+                                    <button type="button" class="btn btn-sm btn-info" onclick='showModal(<?= json_encode($value, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>)'><i class="fa fa-pencil"></i></button>
+                                    <button type="button" class="btn btn-sm btn-danger" onclick="showConfirm(<?= esc($value->topic_id) ?>)"><i class="fa fa-trash"></i></button>
                                 </td>
                             </tr>
                         <?php endforeach; ?>

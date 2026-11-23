@@ -28,23 +28,21 @@ class IndexBiblioController extends BaseController
             ->get()
             ->getNumRows();
 
-        $index_type = $_ENV['INDEX_TYPE'];
+        $index_type = env('INDEX_TYPE', 'mysql');
         if ($index_type == "mysql") {
             $search_biblio  = new IndexBiblioModel();
             $idx_total = $search_biblio->countAllResults();
         } else {
 
             //check avaibility mongodb
-            $output = "";
-            exec("php -i | grep -i mongodb", $output);
-
-            $filteredArray = array_filter($output, function ($item) {
-                return strpos($item, 'MONGO_URL') === false;
-            });
+            // Cek ekstensi pada SAPI yang sedang berjalan (dulu memakai `php -i` yang memeriksa PHP CLI, bukan web server).
+            $filteredArray = extension_loaded('mongodb')
+                ? ['mongodb', 'MongoDB support => enabled', 'MongoDB extension version => ' . phpversion('mongodb')]
+                : [];
 
             $idx_total = 0;
-            if ($filteredArray !== "" || $filteredArray == true) {
-                $packageMongo = \Composer\InstalledVersions::getPrettyVersion('mongodb/mongodb');
+            if (! empty($filteredArray)) {
+                $packageMongo = (\Composer\InstalledVersions::isInstalled('mongodb/mongodb') ? \Composer\InstalledVersions::getPrettyVersion('mongodb/mongodb') : null);
 
                 if (!is_null($packageMongo)) {
                     // Pilih database dan koleksi
@@ -117,7 +115,7 @@ class IndexBiblioController extends BaseController
     function check()
     {
         if ($this->input->isAJAX()) {
-            extract($this->input->getPost());
+            extract(post_only(['item', 'key', 'type', 'val']), EXTR_SKIP);
 
             $status = "error";
 
@@ -125,13 +123,10 @@ class IndexBiblioController extends BaseController
                 case 'nosql':
                     $message = '<ul  style="margin-left:-22px">';
 
-                    $output = "";
-                    exec("php -i | grep -i mongodb", $output);
-
-                    $filteredArray = array_filter($output, function ($item) {
-                        // Mengembalikan true jika tidak ada kata 'MONGO_URL' dalam elemen
-                        return strpos($item, 'MONGO_URL') === false;
-                    });
+                    // Cek ekstensi pada SAPI yang sedang berjalan (dulu memakai `php -i` yang memeriksa PHP CLI, bukan web server).
+            $filteredArray = extension_loaded('mongodb')
+                ? ['mongodb', 'MongoDB support => enabled', 'MongoDB extension version => ' . phpversion('mongodb')]
+                : [];
 
                     if ($filteredArray == "" || $filteredArray == false) {
                         $status = "error";
@@ -145,7 +140,7 @@ class IndexBiblioController extends BaseController
                             $message .= "</li>";
                         }
 
-                        $packageMongo = \Composer\InstalledVersions::getPrettyVersion('mongodb/mongodb');
+                        $packageMongo = (\Composer\InstalledVersions::isInstalled('mongodb/mongodb') ? \Composer\InstalledVersions::getPrettyVersion('mongodb/mongodb') : null);
 
                         $message .= "<li>";
                         if (!is_null($packageMongo)) {
@@ -167,7 +162,7 @@ class IndexBiblioController extends BaseController
                 case 'mysql':
                     $db = \Config\Database::connect();
                     $connected = "failed";
-                    if ($db->simpleQuery('select * from user')) {
+                    if ($db->simpleQuery('SELECT 1')) {
                         $connected = "success";
                         $status = "success";
                     }
@@ -193,7 +188,7 @@ class IndexBiblioController extends BaseController
     {
         set_time_limit(0);
 
-        extract($this->input->getPost());
+        extract(post_only(['index_type']), EXTR_SKIP);
 
         switch ($index_type) {
             case 'mysql':
@@ -209,7 +204,7 @@ class IndexBiblioController extends BaseController
     {
         set_time_limit(0);
 
-        $index_type = $_ENV['INDEX_TYPE'] ?? "mysql";
+        $index_type = env('INDEX_TYPE', 'mysql');
 
         switch ($index_type) {
             case 'mysql':

@@ -30,7 +30,7 @@
                     <select name="filter" id="filter-type" class="form-control select2" data-placeholder="-- Choose Clasification -- ">
                         <option></option>
                         <?php foreach ($list_option as $val) : ?>
-                            <option value="<?= $val['name']; ?>"><?= $val['text'] ?></option>
+                            <option value="<?= esc($val['name']) ?>"><?= esc($val['text']) ?></option>
                         <?php endforeach ?>
                     </select>
                 </div>

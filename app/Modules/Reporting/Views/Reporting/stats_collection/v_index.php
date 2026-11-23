@@ -16,7 +16,7 @@
                 <tr>
                     <td>Total Title</td>
                     <td>
-                        <?= $biblio_total; ?> (including titles that still don't have items yet)
+                        <?= esc($biblio_total) ?> (including titles that still don't have items yet)
                     </td>
                 </tr>
                 <tr>
@@ -24,7 +24,7 @@
                     <td>
                         <ul>
                             <?php foreach ($stats->getResult() as $key => $val) : ?>
-                                <li> <?= $val->gmd_name; ?> : <?= $val->total_titles; ?></li>
+                                <li> <?= esc($val->gmd_name) ?> : <?= esc($val->total_titles) ?></li>
                             <?php endforeach ?>
                         </ul>
                     </td>

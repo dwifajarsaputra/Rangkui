@@ -10,24 +10,24 @@
             <form name="mainForm" id="mainForm" class="form-horizontal" method="post" action="<?= base_url('membership/update') ?>" enctype="multipart/form-data">
                 <?= csrf_field() ?>
                 <input type="hidden" name="form_name" value="mainForm">
-                <input type="hidden" name="original_member_id" value="<?= $data->member_id ?>">
+                <input type="hidden" name="original_member_id" value="<?= esc($data->member_id) ?>">
                 <div class="row">
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="memberId" class="control-label col-md-3">Member ID*</label>
-                            <input type="text" name="member_id" id="memberId" class="form-control" maxlength="50" required value="<?= $data->member_id ?>">
+                            <input type="text" name="member_id" id="memberId" class="form-control" maxlength="50" required value="<?= esc($data->member_id) ?>">
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="memberName" class="control-label col-md-3">Member Name*</label>
-                            <input type="text" name="member_name" id="memberName" class="form-control" maxlength="100" required value="<?= $data->member_name ?>">
+                            <input type="text" name="member_name" id="memberName" class="form-control" maxlength="100" required value="<?= esc($data->member_name) ?>">
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="birthDate" class="control-label col-md-3">Date of Birth</label>
-                            <input class="form-control" type="date" name="birth_date" id="birthDate" value="<?= $data->birth_date ?>">
+                            <input class="form-control" type="date" name="birth_date" id="birthDate" value="<?= esc($data->birth_date) ?>">
                         </div>
                     </div>
                 </div>
@@ -35,13 +35,13 @@
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="instName" class="control-label col-md-3">Institution</label>
-                            <input type="text" name="inst_name" id="instName" class="form-control" maxlength="256" value="<?= $data->inst_name ?>">
+                            <input type="text" name="inst_name" id="instName" class="form-control" maxlength="256" value="<?= esc($data->inst_name) ?>">
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="sinceDate" class="control-label col-md-3">Member Since</label>
-                            <input class="form-control" type="date" name="member_since_date" id="sinceDate" value="<?= $data->member_since_date ?>">
+                            <input class="form-control" type="date" name="member_since_date" id="sinceDate" value="<?= esc($data->member_since_date) ?>">
                         </div>
                     </div>
                 </div>
@@ -51,7 +51,7 @@
                             <label for="memberTypeID" class="control-label col-md-3">Membership Type*</label>
                             <select name="member_type_id" id="memberTypeID" class="form-control" required>
                                 <?php foreach ($mst_data as $value): ?>
-                                    <option value="<?= $value->member_type_id ?>" <?= $value->member_type_id == $data->member_type_id ? 'selected' : '' ?>><?= $value->member_type_name ?></option>
+                                    <option value="<?= esc($value->member_type_id) ?>" <?= $value->member_type_id == $data->member_type_id ? 'selected' : '' ?>><?= esc($value->member_type_name) ?></option>
                                 <?php endforeach; ?>
                             </select>
                         </div>
@@ -59,7 +59,7 @@
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="regDate" class="control-label col-md-3">Registration Date</label>
-                            <input class="form-control" type="date" name="register_date" id="regDate" value="<?= $data->register_date ?>">
+                            <input class="form-control" type="date" name="register_date" id="regDate" value="<?= esc($data->register_date) ?>">
                         </div>
                     </div>
 
@@ -68,13 +68,13 @@
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="memberPIN" class="control-label col-md-3">Identification Number</label>
-                            <input type="text" name="pin" id="memberPIN" class="form-control" maxlength="256" required value="<?= $data->pin ?>">
+                            <input type="text" name="pin" id="memberPIN" class="form-control" maxlength="256" required value="<?= esc($data->pin) ?>">
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="form-group">
                             <label class="control-label col-md-3">Valid Until</label>
-                            <input class="form-control" type="date" name="expire_date" id="expDate" value="<?= $data->expire_date ?>">
+                            <input class="form-control" type="date" name="expire_date" id="expDate" value="<?= esc($data->expire_date) ?>">
                         </div>
                     </div>
                 </div>
@@ -82,7 +82,7 @@
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="memberPostal" class="control-label col-md-3">Postal Code</label>
-                            <input type="text" name="postal_code" id="memberPostal" class="form-control" maxlength="256" value="<?= $data->postal_code ?>">
+                            <input type="text" name="postal_code" id="memberPostal" class="form-control" maxlength="256" value="<?= esc($data->postal_code) ?>">
                         </div>
                     </div>
                     <div class="col-md-6">
@@ -99,13 +99,13 @@
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="memberAddress" class="control-label col-md-3">Address</label>
-                            <textarea name="member_address" id="memberAddress" class="form-control" rows="2" maxlength="30720"><?= $data->member_address ?></textarea>
+                            <textarea name="member_address" id="memberAddress" class="form-control" rows="2" maxlength="30720"><?= esc($data->member_address) ?></textarea>
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="memberMailAddress" class="control-label col-md-3">Address Mail</label>
-                            <textarea name="member_mail_address" id="memberMailAddress" class="form-control" rows="2" maxlength="30720"><?= $data->member_mail_address ?></textarea>
+                            <textarea name="member_mail_address" id="memberMailAddress" class="form-control" rows="2" maxlength="30720"><?= esc($data->member_mail_address) ?></textarea>
                         </div>
                     </div>
                 </div>
@@ -113,13 +113,13 @@
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="memberPhone" class="control-label col-md-3">Phone Number</label>
-                            <input type="text" name="member_phone" id="memberPhone" class="form-control" maxlength="256" value="<?= $data->member_phone ?>">
+                            <input type="text" name="member_phone" id="memberPhone" class="form-control" maxlength="256" value="<?= esc($data->member_phone) ?>">
                         </div>
                     </div>
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="memberFax" class="control-label col-md-3">Fax Number</label>
-                            <input type="text" name="member_fax" id="memberFax" class="form-control" maxlength="256" value="<?= $data->member_fax ?>">
+                            <input type="text" name="member_fax" id="memberFax" class="form-control" maxlength="256" value="<?= esc($data->member_fax) ?>">
                         </div>
                     </div>
                 </div>
@@ -128,7 +128,7 @@
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="memberNotes" class="control-label col-md-3">Notes</label>
-                            <textarea name="member_notes" id="memberNotes" class="form-control" rows="2" maxlength="30720"><?= $data->member_notes ?></textarea>
+                            <textarea name="member_notes" id="memberNotes" class="form-control" rows="2" maxlength="30720"><?= esc($data->member_notes) ?></textarea>
                         </div>
                     </div>
                     <div class="row">
@@ -137,7 +137,7 @@
                         <div class="col-md-9">
                             <div class="form-group">
                                 <label for="image" class="control-label col-md-3">Foto</label>
-                                <input type="file" name="member_image" id="image" class="form-control" value="<?= $data->member_image ?>">
+                                <input type="file" name="member_image" id="image" class="form-control" value="<?= esc($data->member_image) ?>">
                                 <small>Maximum 500 KB</small>
                             </div>
                         </div>
@@ -168,7 +168,7 @@
                     <div class="col-md-6">
                         <div class="form-group">
                             <label for="memberEmail" class="control-label col-md-3">E-mail</label>
-                            <input type="text" name="member_email" id="memberEmail" class="form-control" maxlength="256" required value="<?= $data->member_email ?>">
+                            <input type="text" name="member_email" id="memberEmail" class="form-control" maxlength="256" required value="<?= esc($data->member_email) ?>">
                         </div>
                     </div>
                 </div>

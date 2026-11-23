@@ -5,7 +5,7 @@
     </div>
     <div class="x_content">
         <div class="text-right">
-            <button class="btn btn-sm btn-danger" onclick="moveTo('<?= base_url('sistem/logs/delete') ?>', 'Are you sure, want to empty system log ?' )">
+            <button class="btn btn-sm btn-danger" onclick="postTo('<?= base_url('sistem/logs/delete') ?>', 'Are you sure, want to empty system log ?' )">
                 <i class="fa fa-trash"></i> Hapus Catatan
             </button>
             <button class="btn btn-sm btn-primary" onclick="moveTo('<?= base_url('sistem/logs/save') ?>')">
@@ -27,9 +27,9 @@
                     foreach ($list_logs as $key => $val): ?>
                         <tr>
                             <td><?= $i++; ?></td>
-                            <td><?= $val->log_location; ?></td>
+                            <td><?= esc($val->log_location) ?></td>
                             <td><?= date("Y-m-d H:i:s", strtotime($val->log_date)); ?></td>
-                            <td><?= $val->log_msg; ?></td>
+                            <td><?= esc($val->log_msg) ?></td>
                         </tr>
                     <?php endforeach ?>
                 </tbody>

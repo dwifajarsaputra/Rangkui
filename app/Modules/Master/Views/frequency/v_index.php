@@ -27,14 +27,14 @@
                         foreach ($data as $key => $value) : ?>
                             <tr>
                                 <td><?= $i++ ?></td>
-                                <td><?= $value->frequency ?></td>
-                                <td><?= $value->language_prefix ?></td>
-                                <td><?= $value->time_increment ?></td>
-                                <td><?= $value->time_unit ?></td>
-                                <td><?= $value->last_update ?></td>
+                                <td><?= esc($value->frequency) ?></td>
+                                <td><?= esc($value->language_prefix) ?></td>
+                                <td><?= esc($value->time_increment) ?></td>
+                                <td><?= esc($value->time_unit) ?></td>
+                                <td><?= esc($value->last_update) ?></td>
                                 <td>
-                                    <button type="button" class="btn btn-sm btn-info" onclick='showModal(<?= json_encode($value) ?>)'><i class="fa fa-pencil"></i></button>
-                                    <button type="button" class="btn btn-sm btn-danger" onclick="showConfirm(<?= $value->frequency_id ?>)"><i class="fa fa-trash"></i></button>
+                                    <button type="button" class="btn btn-sm btn-info" onclick='showModal(<?= json_encode($value, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>)'><i class="fa fa-pencil"></i></button>
+                                    <button type="button" class="btn btn-sm btn-danger" onclick="showConfirm(<?= esc($value->frequency_id) ?>)"><i class="fa fa-trash"></i></button>
                                 </td>
                             </tr>
                         <?php endforeach; ?>

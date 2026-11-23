@@ -36,7 +36,7 @@ class ReportStafActController extends BaseController
     function filter()
     {
 
-        extract($this->input->getPost());
+        extract(post_only(['key', 'val']), EXTR_SKIP);
 
         $report = new ReportingModel();
 

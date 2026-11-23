@@ -6,10 +6,10 @@
             $slug = str_replace(" ", "-", strtolower($val["title"]));
         ?>
             <div class="panel">
-                <a class="panel-heading" role="tab" id="headingOne" data-toggle="collapse" data-parent="#accordion" href="#<?= $slug ?>" aria-expanded="true" aria-controls="<?= $slug; ?>">
-                    <h4 class="panel-title"><?= formatString($val["title"]); ?></h4>
+                <a class="panel-heading" role="tab" id="headingOne" data-toggle="collapse" data-parent="#accordion" href="#<?= esc($slug) ?>" aria-expanded="true" aria-controls="<?= esc($slug) ?>">
+                    <h4 class="panel-title"><?= esc(formatString($val["title"])); ?></h4>
                 </a>
-                <div id="<?= $slug; ?>" class="panel-collapse in collapse show" role="tabpanel" aria-labelledby="headingOne" style="">
+                <div id="<?= esc($slug) ?>" class="panel-collapse in collapse show" role="tabpanel" aria-labelledby="headingOne" style="">
                     <div class="panel-body">
                         <table class="table table-bordered">
                             <tbody>
@@ -19,8 +19,8 @@
                                             <input
                                                 type="checkbox"
                                                 name="sub_list[]"
-                                                value="<?= $v["id"]; ?>"
-                                                <?= in_array($v["title"], $list_sc)     ? "checked" : "" ?>> <?= $v["title"]; ?>
+                                                value="<?= esc($v["id"]) ?>"
+                                                <?= in_array($v["title"], $list_sc)     ? "checked" : "" ?>> <?= esc($v["title"]) ?>
                                         </td>
                                     </tr>
                                 <?php endforeach ?>

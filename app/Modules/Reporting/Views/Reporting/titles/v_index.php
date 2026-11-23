@@ -36,7 +36,7 @@
                         <select name="gmd[]" id="gmd" class="form-control select2" data-placeholder="--GMD Type--" multiple="multiple">
                             <option></option>
                             <?php foreach ($list_gmd as $key => $val) : ?>
-                                <option value="<?= $val['gmd_id']; ?>"><?= $val['gmd_name']; ?></option>
+                                <option value="<?= esc($val['gmd_id']) ?>"><?= esc($val['gmd_name']) ?></option>
                             <?php endforeach ?>
                         </select>
                     </div>
@@ -47,7 +47,7 @@
                         <select name="coll_type[]" id="coll_type" class="form-control select2" data-placeholder="--Collection Type--" multiple="multiple">
                             <option></option>
                             <?php foreach ($list_coll as $key => $val) : ?>
-                                <option value="<?= $val['coll_type_id']; ?>"><?= $val['coll_type_name']; ?></option>
+                                <option value="<?= esc($val['coll_type_id']) ?>"><?= esc($val['coll_type_name']) ?></option>
                             <?php endforeach ?>
                         </select>
                     </div>
@@ -58,7 +58,7 @@
                         <select name="lang" id="lang" class="form-control select2" data-placeholder="--Languages--">
                             <option></option>
                             <?php foreach ($list_lang as $key => $val) : ?>
-                                <option value="<?= $val['language_id']; ?>"><?= $val['language_name']; ?></option>
+                                <option value="<?= esc($val['language_id']) ?>"><?= esc($val['language_name']) ?></option>
                             <?php endforeach ?>
                         </select>
                     </div>
@@ -69,7 +69,7 @@
                         <select name="loc" id="loc" class="form-control select2" data-placeholder="--Locations--">
                             <option></option>
                             <?php foreach ($list_loc as $key => $val) : ?>
-                                <option value="<?= $val['location_id']; ?>"><?= $val['location_name']; ?></option>
+                                <option value="<?= esc($val['location_id']) ?>"><?= esc($val['location_name']) ?></option>
                             <?php endforeach ?>
                         </select>
                     </div>
@@ -106,19 +106,19 @@
                     foreach ($title_report as $val): ?>
                         <tr>
                             <td><?= $i++; ?></td>
-                            <td><?= $val->gmd_name; ?></td>
+                            <td><?= esc($val->gmd_name) ?></td>
                             <td>
-                                <?= $val->title; ?>
-                                <p><i><?= $val->authors; ?></i></p>
+                                <?= esc($val->title) ?>
+                                <p><i><?= esc($val->authors) ?></i></p>
                             </td>
-                            <td><?= $val->place_name; ?></td>
-                            <td><?= $val->publisher_name; ?></td>
+                            <td><?= esc($val->place_name) ?></td>
+                            <td><?= esc($val->publisher_name) ?></td>
                             <td>
                                 <?php if (!empty($val->isbn_issn)): ?>
                                     <?= date("Y-m-d", strtotime($val->isbn_issn)); ?>
                                 <?php endif ?>
                             </td>
-                            <td><?= $val->call_number; ?></td>
+                            <td><?= esc($val->call_number) ?></td>
                         </tr>
                     <?php endforeach ?>
                 </tbody>

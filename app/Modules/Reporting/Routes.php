@@ -17,7 +17,6 @@ $routes->group('report', ['namespace' => 'App\Modules\Reporting\Controllers'], f
      * Download Counter
      */
     $routes->get('download-counter', 'DownloadCounterController::index');
-    $routes->get('download-counter/stats', 'DownloadCounterController::stats');
 
     /**
      * Recapitulation Report

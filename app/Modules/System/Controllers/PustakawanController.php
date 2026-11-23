@@ -4,6 +4,7 @@ namespace App\Modules\System\Controllers;
 
 use Config\Services;
 use App\Controllers\BaseController;
+use App\Libraries\SecureUpload;
 use App\Modules\System\Models\PustakawanModel;
 use CodeIgniter\API\ResponseTrait;
 
@@ -64,29 +65,19 @@ class PustakawanController extends BaseController
         if (! $this->validate($rules)) {
             return redirect()->back()->withInput()->with('validation', \Config\Services::validation());
         } else {
-            extract($this->input->getPost());
+            extract(post_only(['eMail', 'groups', 'passwd1', 'realName', 'social', 'userType', 'username']), EXTR_SKIP);
 
-            $filename    = (string) $_FILES['image']['name'];
-            $configImage = $this->_configBerkas($filename, $username);
-            $image       = $this->input->getFile('image');
-            if ($image->isValid() && !$image->hasMoved()) {
-
-                $save_name = $configImage['file_name'];
-                $image->move($configImage['upload_path'], $save_name);
-            } else {
-                // Jika tidak ada gambar diunggah, set gambar default
-                $save_name = null;
-            }
+            $save_name = $this->_storeUserImage();
 
 
             $now = date("Y-m-d H:i:s");
 
             $data = [
-                'username'      => $this->db->escapeString($username),
-                'realname'      => $this->db->escapeString($realName),
+                'username'      => $username,
+                'realname'      => $realName,
                 'passwd'        => password_hash($passwd1, PASSWORD_BCRYPT),
-                'email'         => $this->db->escapeString($eMail),
-                'user_type'     => $this->db->escapeString($userType),
+                'email'         => $eMail,
+                'user_type'     => $userType,
                 'user_image'    => $save_name,
                 'social_media'  => serialize($social),
                 'last_login'    => null,
@@ -139,7 +130,7 @@ class PustakawanController extends BaseController
     function update()
     {
 
-        extract($this->input->getPost());
+        extract(post_only(['eMail', 'groups', 'passwd1', 'realName', 'social', 'userType', 'username', 'w_id']), EXTR_SKIP);
 
         $pustakawan = new PustakawanModel();
 
@@ -167,27 +158,16 @@ class PustakawanController extends BaseController
             if (! $this->validate($rules)) {
                 return redirect()->back()->withInput()->with('validation', \Config\Services::validation());
             } else {
-                $filename    = (string) $_FILES['image']['name'];
-                $configImage = $this->_configBerkas($filename, $username);
-                $image       = $this->input->getFile('image');
-
-                if ($image->isValid() && !$image->hasMoved()) {
-                    $save_name = $configImage['file_name'];
-                    $image->move($configImage['upload_path'], $save_name);
-                } else {
-                    // Jika tidak ada gambar diunggah, set gambar default
-
-                    $save_name = null;
-                }
+                $save_name = $this->_storeUserImage();
 
                 $this->db->transBegin();
 
                 $now = date("Y-m-d H:i:s");
                 $data = [
-                    'username'     => $this->db->escapeString($username),
-                    'realname'     => $this->db->escapeString($realName),
-                    'email'        => $this->db->escapeString($eMail),
-                    'user_type'    => $this->db->escapeString($userType),
+                    'username'     => $username,
+                    'realname'     => $realName,
+                    'email'        => $eMail,
+                    'user_type'    => $userType,
                     'social_media' => serialize($social),
                     'groups'       => serialize($groups),
                     'last_update'  => $now,
@@ -197,7 +177,7 @@ class PustakawanController extends BaseController
                     $data['passwd'] = password_hash($passwd1, PASSWORD_BCRYPT);
                 }
 
-                if (!is_null($saveImage)) {
+                if (!is_null($save_name)) {
                     $data['user_image'] = $save_name;
                 }
 
@@ -275,22 +255,14 @@ class PustakawanController extends BaseController
 
         return $this->respond($resp);
     }
-    private function _configBerkas($file, $username)
+    private function _storeUserImage(): ?string
     {
-        $path = 'uploads/images/persons';
-        if (!is_dir('./' . $path)) {
-            mkdir('./' . $path, 0777, TRUE);
+        $uploader = new SecureUpload();
+        $name     = $uploader->storeImage($this->request->getFile('image'), FCPATH . 'uploads/images/persons', 'user', 1024);
+        if ($uploader->getError() !== null) {
+            slim_alert('error', 'Foto ditolak: ' . $uploader->getError());
         }
 
-        $config = [];
-        $ext    = pathinfo($file, PATHINFO_EXTENSION);
-        $save   = 'user_' . $username . '-' . $this->datetime . '.' . $ext;
-
-        $config['upload_path']   = './uploads/images/docs';
-        $config['allowed_types'] = 'png|jpg|jpeg';
-        $config['file_name']     = $save;
-        $config['max_size']      = '500';
-
-        return $config;
+        return $name;
     }
 }

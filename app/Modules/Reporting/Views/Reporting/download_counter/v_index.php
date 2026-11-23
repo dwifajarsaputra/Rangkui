@@ -24,7 +24,7 @@
                         ?>
                             <tr>
                                 <td><?= $i++ ?></td>
-                                <td><?= $value->title ?></td>
+                                <td><?= esc($value->title) ?></td>
                                 <td>
                                     <table cellspacing="0" width="100%">
                                         <thead style="background-color: #2A3F54;color: #fff;">
@@ -36,8 +36,8 @@
                                         <tbody>
                                             <?php foreach ($value->attachment as $attachment): ?>
                                                 <tr>
-                                                    <td style="padding: .3px;"><?= $attachment->file_name  ?> </td>
-                                                    <td style="padding: .3px;" class="text-right text-<?= $attachment->count > 0 ? "success" : "danger" ?>"><?= $attachment->count  ?> downloaded</td>
+                                                    <td style="padding: .3px;"><?= esc($attachment->file_name) ?> </td>
+                                                    <td style="padding: .3px;" class="text-right text-<?= $attachment->count > 0 ? "success" : "danger" ?>"><?= esc($attachment->count) ?> downloaded</td>
                                                 </tr>
                                             <?php endforeach ?>
                                         </tbody>

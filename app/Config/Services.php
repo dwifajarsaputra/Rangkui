@@ -40,17 +40,23 @@ class Services extends BaseService
             return static::getSharedInstance('mongo');
         }
 
-        // Koneksi ke MongoDB, sesuaikan konfigurasi
+        // MongoDB bersifat opsional (INDEX_TYPE=nosql); paket & ekstensinya tidak wajib dipasang.
+        if (! class_exists(Client::class)) {
+            log_message('error', 'MongoDB dipilih tetapi paket mongodb/mongodb belum dipasang (composer require mongodb/mongodb).');
+
+            return false;
+        }
+
         try {
             // Mengambil konfigurasi dari environment
-            $hostName = $_ENV['MONGO_HOST'] ?? "mongodb://localhost:27017";
-            $dbName = $_ENV['MONGO_DB'] ?? "slims";
+            $hostName = env('MONGO_HOST') ?: 'mongodb://localhost:27017';
+            $dbName = env('MONGO_DB') ?: 'rangkui';
 
             // Membuat koneksi client MongoDB
             $client = new Client($hostName);
             // Pilih database sesuai konfigurasi
             return $client->selectDatabase($dbName);
-        } catch (Exception $e) { // Tangkap error dari MongoDB
+        } catch (\Throwable $e) { // Tangkap error dari MongoDB
             // Jika terjadi error, tampilkan pesan log
             log_message('error', 'Failed to connect to MongoDB: ' . $e->getMessage());
 

@@ -65,7 +65,7 @@ class TipeKeanggotaanController extends BaseController
     }
     public function save()
     {
-        extract($this->input->getPost());
+        extract(post_only(['enable_reserve', 'fine_each_day', 'grace_periode', 'loan_limit', 'loan_periode', 'member_periode', 'member_type_name', 'reborrow_limit', 'reserve_limit']), EXTR_SKIP);
 
         $rules = [
             'member_type_name' => 'required',
@@ -108,7 +108,7 @@ class TipeKeanggotaanController extends BaseController
 
     public function update()
     {
-        extract($this->input->getPost());
+        extract(post_only(['enable_reserve', 'fine_each_day', 'grace_periode', 'loan_limit', 'loan_periode', 'member_periode', 'member_type_name', 'reborrow_limit', 'reserve_limit']), EXTR_SKIP);
         $member_type_id = $this->input->getPost('member_type_id');
 
         $rules = [
@@ -149,16 +149,16 @@ class TipeKeanggotaanController extends BaseController
 
             if ($this->db->transStatus() === true) {
                 $this->db->transCommit();
-                slim_alert('Success', 'Berhasil Ubah Dokumen');
+                slim_alert('success', 'Berhasil Ubah Dokumen');
             } else {
                 $this->db->transRollback();
 
                 $error = $this->db->errors();
                 log_message('error', reset($error));
-                slim_alert('Error', 'Gagal Ubah Dokumen');
+                slim_alert('error', 'Gagal Ubah Dokumen');
             }
         } else {
-            slim_alert('Error', 'Member Type ID tidak ditemukan');
+            slim_alert('error', 'Member Type ID tidak ditemukan');
         }
         return redirect()->to('/membership/membertype');
     }

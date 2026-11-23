@@ -35,7 +35,7 @@ class Filters extends BaseFilters
         'forcehttps'    => ForceHTTPS::class,
         'pagecache'     => PageCache::class,
         'performance'   => PerformanceMetrics::class,
-        'auth'          => AuthFilter::class, // Tambahkan ini
+        'auth'          => AuthFilter::class,
         // 'languageFilter' => \App\Filters\LanguageFilters::class,
     ];
 
@@ -72,30 +72,26 @@ class Filters extends BaseFilters
      */
     public array $globals = [
         'before' => [
-            // 'languageFilter',
-            // 'honeypot',
-            // 'csrf',
-            // 'invalidchars',
+            // CSRF untuk semua request yang mengubah data. OAI-PMH bersifat read-only dan
+            // dipanen mesin; wizard instalasi hanya aktif sebelum aplikasi terpasang.
+            'csrf' => ['except' => ['oai', 'oai/*', 'install', 'install/*']],
+            // Semua rute WAJIB login kecuali halaman publik di bawah ini.
+            'auth' => ['except' => [
+                '/',
+                'beranda', 'beranda/*',
+                'opac', 'opac/*',
+                'oai', 'oai/*',
+                'information',
+                'login', 'login/*',
+                'logout',
+                'install', 'install/*',
+            ]],
         ],
         'after' => [
-            // 'honeypot',
-            // 'secureheaders',
+            'secureheaders',
         ],
     ];
 
-    /**
-     * List of filter aliases that works on a
-     * particular HTTP method (GET, POST, etc.).
-     *
-     * Example:
-     * 'POST' => ['foo', 'bar']
-     *
-     * If you use this, you should disable auto-routing because auto-routing
-     * permits any HTTP method to access a controller. Accessing the controller
-     * with a method you don't expect could bypass the filter.
-     *
-     * @var array<string, list<string>>
-     */
     public array $methods = [
         // 'POST' => ['csrf']
     ];
@@ -109,16 +105,5 @@ class Filters extends BaseFilters
      *
      * @var array<string, array<string, list<string>>>
      */
-    public array $filters = [
-        'auth' => [
-            'before' => [
-                'home/',
-                'bibliography/',
-                'bibliography/*',
-                'master/*',
-                'sistem/*',
-                'report/*',
-            ]
-        ]
-    ];
+    public array $filters = [];
 }

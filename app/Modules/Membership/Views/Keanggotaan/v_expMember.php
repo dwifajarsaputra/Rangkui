@@ -26,12 +26,12 @@
                 <tbody>
                     <?php foreach ($data as $value): ?>
                         <tr>
-                            <td><?= $value->member_id ?></td>
-                            <td><?= $value->member_name ?></td>
-                            <td><?= $value->member_type_name ?></td>
-                            <td><?= $value->member_email ?></td>
-                            <td><?= $value->last_update ?></td>
-                            <td align="center"> <button type="button" class="btn btn-sm btn-info" onclick='showModal(<?= json_encode($value) ?>)'><i class="fa fa-pencil"></i>
+                            <td><?= esc($value->member_id) ?></td>
+                            <td><?= esc($value->member_name) ?></td>
+                            <td><?= esc($value->member_type_name) ?></td>
+                            <td><?= esc($value->member_email) ?></td>
+                            <td><?= esc($value->last_update) ?></td>
+                            <td align="center"> <button type="button" class="btn btn-sm btn-info" onclick='showModal(<?= json_encode($value, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>)'><i class="fa fa-pencil"></i>
                             </td>
                         </tr>
                     <?php endforeach; ?>

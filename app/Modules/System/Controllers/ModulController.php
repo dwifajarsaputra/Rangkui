@@ -48,7 +48,7 @@ class ModulController extends BaseController
 
     function save()
     {
-        extract($this->input->getPost());
+        extract(post_only(['desc', 'icon', 'title']), EXTR_SKIP);
 
 
         $this->db->transBegin();
@@ -108,7 +108,7 @@ class ModulController extends BaseController
 
     function update()
     {
-        extract($this->input->getPost());
+        extract(post_only(['desc', 'icon', 'title', 'w_id']), EXTR_SKIP);
 
         $id = $w_id;
 

@@ -22,11 +22,11 @@
                     foreach ($menu as $key => $val): ?>
                         <tr>
                             <td><?= $i++; ?></td>
-                            <td><?= $val->title; ?></td>
-                            <td><?= $val->desc; ?></td>
+                            <td><?= esc($val->title) ?></td>
+                            <td><?= esc($val->desc) ?></td>
                             <td>
                                 <a href="<?= base_url('sistem/modul/edit/' . $val->id); ?>" class="btn btn-sm btn-info"><i class="fa fa-pencil"></i></a>
-                                <button type="button" class="btn btn-sm btn-danger" onclick="showConfirm(<?= $val->id ?>)"><i class="fa fa-trash"></i></button>
+                                <button type="button" class="btn btn-sm btn-danger" onclick="showConfirm(<?= esc($val->id) ?>)"><i class="fa fa-trash"></i></button>
                             </td>
                         </tr>
                     <?php endforeach ?>

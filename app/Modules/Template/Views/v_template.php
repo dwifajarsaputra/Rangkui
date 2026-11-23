@@ -2,7 +2,7 @@
 <html lang="en">
 
 <head>
-    <title><?= $title ?></title>
+    <title><?= esc($title) ?></title>
 
 
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
@@ -60,7 +60,7 @@
             <?php if (stripos($cs, "assets") !== false) : ?>
                 <link rel="stylesheet" href="<?= base_url($cs . '.css?ver=' . filemtime(FCPATH . $cs . ".css")) ?>" type="text/css">
             <?php else: ?>
-                <link rel="stylesheet" href="<?= $cs ?>" type="text/css">
+                <link rel="stylesheet" href="<?= esc($cs) ?>" type="text/css">
             <?php endif ?>
         <?php endforeach ?>
     <?php endif ?>
@@ -69,6 +69,7 @@
     </script>
 
     <?php $session = session(); ?>
+    <meta name="csrf-token" content="<?= csrf_hash() ?>" data-name="<?= csrf_token() ?>" data-header="<?= csrf_header() ?>">
 </head>
 
 
@@ -112,20 +113,20 @@
                                 ?>
                                     <?php if (array_key_exists('children', (array) $menu)) : ?>
                                         <li>
-                                            <a><i class="fa <?= $menu->icon; ?>"></i> <?= $menu->title; ?>
+                                            <a><i class="fa <?= esc($menu->icon) ?>"></i> <?= esc($menu->title) ?>
                                                 <span class="fa fa-chevron-down"></span></a>
                                             <ul class="nav child_menu">
                                                 <?php foreach ($menu->children as $key => $sub) :
                                                     $sub = (object) $sub;
                                                 ?>
-                                                    <?php if ((int) $sub->level == 3): ?>
-                                                        <li><a href="<?= base_url() . $sub->url ?>"><?= $sub->title; ?></a></li>
+                                                    <?php if ((int) $sub->level == 3 || empty($sub->children)): ?>
+                                                        <li><a href="<?= esc(base_url((string) $sub->url)) ?>"><?= esc($sub->title) ?></a></li>
                                                     <?php else: ?>
-                                                        <li><a><?= $sub->title; ?><span class="fa fa-chevron-down"></span></a>
+                                                        <li><a><?= esc($sub->title) ?><span class="fa fa-chevron-down"></span></a>
                                                             <ul class="nav sub_menu">
                                                                 <?php foreach ($sub->children as $subsub):
                                                                     $subsub = (object) $subsub ?>
-                                                                    <li><a href="<?= base_url() . $subsub->url ?>"><?= $subsub->title; ?></a></li>
+                                                                    <li><a href="<?= esc(base_url((string) $subsub->url)) ?>"><?= esc($subsub->title) ?></a></li>
                                                                 <?php endforeach ?>
                                                             </ul>
                                                         </li>
@@ -134,7 +135,7 @@
                                             </ul>
                                         </li>
                                     <?php else: ?>
-                                        <li><a href="<?= base_url() . $menu->url ?>"><i class="fa <?= $menu->icon; ?>"></i><?= $menu->title; ?></a></li>
+                                        <li><a href="<?= esc(base_url((string) $menu->url)) ?>"><i class="fa <?= esc($menu->icon) ?>"></i><?= esc($menu->title) ?></a></li>
                                     <?php endif ?>
                                 <?php endforeach ?>
                             </ul>
@@ -179,7 +180,7 @@
                                     id="navbarDropdown"
                                     data-toggle="dropdown"
                                     aria-expanded="false">
-                                    <img src="<?= base_url('assets/images/img.jpg') ?>" alt="" /><?= $session->name ?>
+                                    <img src="<?= base_url('assets/images/img.jpg') ?>" alt="" /><?= esc($session->name) ?>
                                 </a>
                                 <div
                                     class="dropdown-menu dropdown-usermenu pull-right"
@@ -199,7 +200,7 @@
                 <div class="">
                     <div class="page-title">
                         <div class="title_left">
-                            <h3><?= $title ?> </h3>
+                            <h3><?= esc($title) ?> </h3>
                         </div>
                     </div>
 
@@ -226,6 +227,7 @@
 
     <!-- jQuery -->
     <script src="<?= base_url('assets/vendors/jquery/dist/jquery.min.js') ?>"></script>
+    <script src="<?= base_url('assets/custom/js/csrf.js') ?>"></script>
     <!-- Bootstrap -->
     <script src="<?= base_url('assets/vendors/bootstrap/dist/js/bootstrap.bundle.min.js') ?>"></script>
     <!-- Select2 -->
@@ -305,7 +307,7 @@
                 <?php $jsPath = FCPATH . $v . ".js"; ?>
                 <script src="<?= base_url($v . '.js?ver=' . (file_exists($jsPath) ? filemtime($jsPath) : time())) ?>"></script>
             <?php else : ?>
-                <script src="<?= $v ?>"></script>
+                <script src="<?= esc($v) ?>"></script>
             <?php endif ?>
         <?php endforeach ?>
     <?php endif ?>
@@ -313,9 +315,9 @@
     <?php if (!is_null($session->getFlashdata('alert'))): ?>
         <script>
             new PNotify({
-                title: '<?= $session->getFlashdata('alert')['msg'] ?>',
-                text: '<?= $session->getFlashdata('alert')['text'] ?>',
-                type: '<?= $session->getFlashdata('alert')['status'] ?>',
+                title: <?= json_encode((string) ($session->getFlashdata('alert')['msg'] ?? ''), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>,
+                text: <?= json_encode((string) ($session->getFlashdata('alert')['text'] ?? ''), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>,
+                type: <?= json_encode((string) ($session->getFlashdata('alert')['status'] ?? ''), JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_QUOT | JSON_HEX_AMP) ?>,
                 styling: 'bootstrap3'
             });
         </script>

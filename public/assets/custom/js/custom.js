@@ -63,3 +63,23 @@ function sNotif(msg, text, status) {
     styling: "bootstrap3",
   });
 }
+
+/**
+ * Kirim aksi yang mengubah data sebagai POST (dengan token CSRF), bukan tautan GET.
+ */
+const postTo = (url, messageConfirm = null) => {
+  if (messageConfirm !== null && !confirm(messageConfirm)) return
+  const meta = document.querySelector('meta[name="csrf-token"]')
+  const form = document.createElement('form')
+  form.method = 'post'
+  form.action = url
+  if (meta) {
+    const input = document.createElement('input')
+    input.type = 'hidden'
+    input.name = meta.getAttribute('data-name')
+    input.value = meta.getAttribute('content')
+    form.appendChild(input)
+  }
+  document.body.appendChild(form)
+  form.submit()
+}

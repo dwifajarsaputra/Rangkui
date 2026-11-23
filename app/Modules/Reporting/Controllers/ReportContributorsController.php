@@ -49,7 +49,7 @@ class ReportContributorsController extends BaseController
     {
         $item = [];
         $contributor_type = [];
-        extract($this->input->getPost());
+        extract(post_only(['author', 'classification', 'contributor_name', 'key', 'subject', 'title', 'val']), EXTR_SKIP);
 
         $report = new ReportingModel();
 

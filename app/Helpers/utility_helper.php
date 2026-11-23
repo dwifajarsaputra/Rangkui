@@ -12,7 +12,7 @@ if (!function_exists('pd')) {
      */
     function pd($val, $exit = 0)
     {
-        if ($_ENV['CI_ENVIRONMENT'] != 'production') {
+        if (ENVIRONMENT !== 'production') {
             echo "<pre>";
             print_r($val);
             echo "</pre>";
@@ -377,7 +377,7 @@ if (!function_exists('getShortcut')) {
                 ->setting_value;
 
             if (!empty(trim($old_sc))) {
-                $shortcut = unserialize($old_sc);
+                $shortcut = unserialize($old_sc, ['allowed_classes' => ['stdClass']]);
             }
         }
 

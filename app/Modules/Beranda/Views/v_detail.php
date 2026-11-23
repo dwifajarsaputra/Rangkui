@@ -11,8 +11,8 @@
             <?php else : ?>
                 <img src="<?= base_url('uploads/images/docs/' . $data->image) ?>" class="thumbnail_cover" alt="book cover">
             <?php endif ?>
-            <h3><?= $data->gmd ?></h3>
-            <h4 class="text-justify"><?= $data->title ?></h4>
+            <h3><?= esc($data->gmd) ?></h3>
+            <h4 class="text-justify"><?= esc($data->title) ?></h4>
 
             <a target="_blank" href="?p=show_detail&amp;inXML=true&amp;id=82" class="btn btn-sm btn-danger">XML</a>
             <a href="https://www.mendeley.com/import/?url=<?= rawurlencode(current_url()) ?>" target="_blank">
@@ -20,7 +20,7 @@
             </a>
             <div itemprop="author" property="author" itemscope="" itemtype="http://schema.org/Person">
                 <?php foreach ($data->author as $key => $value) : ?>
-                    <small class="author-detail"><a href="<?= base_url('beranda/search?author=' . rawurlencode($value->author_name)) ?>" title="Click to view others documents with this author"><?= $value->author_name ?></a> - <?= authority_type($value->authority_type) ?></small>
+                    <small class="author-detail"><a href="<?= base_url('beranda/search?author=' . rawurlencode($value->author_name)) ?>" title="Click to view others documents with this author"><?= esc($value->author_name) ?></a> - <?= authority_type($value->authority_type) ?></small>
                 <?php endforeach ?>
             </div>
 
@@ -63,7 +63,7 @@
                 </li>
             </ul>
             <hr>
-            <p class="text-justify"><?= $data->notes ?></p>
+            <p class="text-justify"><?= esc($data->notes) ?></p>
         </div>
 
         <div class="col-12">
@@ -75,7 +75,7 @@
                     <tr>
                         <th width="20%">Item Type</th>
                         <td>
-                            <div itemprop="alternativeHeadline" property="alternativeHeadline"><?= $data->item_type ?></div>
+                            <div itemprop="alternativeHeadline" property="alternativeHeadline"><?= esc($data->item_type) ?></div>
                         </td>
                     </tr>
 
@@ -84,7 +84,7 @@
                         <td>
                             <?php foreach ($data->author as $key => $value) : ?>
                                 <div>
-                                    <a href="<?= base_url('beranda/search?author=' . rawurlencode($value->author_name)) ?>" title="Klik disini untuk mencari dokumen lain dari pengarang ini"><?= $value->author_name ?></a>
+                                    <a href="<?= base_url('beranda/search?author=' . rawurlencode($value->author_name)) ?>" title="Klik disini untuk mencari dokumen lain dari pengarang ini"><?= esc($value->author_name) ?></a>
                                     - <?= authority_type($value->authority_type) ?>
                                 </div>
                             <?php endforeach ?>
@@ -93,7 +93,7 @@
                     <tr>
                         <th>Student ID</th>
                         <td>
-                            <div itemprop="numberOfPages" property="numberOfPages"><?= $data->student_id ?></div>
+                            <div itemprop="numberOfPages" property="numberOfPages"><?= esc($data->student_id) ?></div>
                         </td>
                     </tr>
                     <tr>
@@ -101,7 +101,7 @@
                         <td>
                             <?php foreach ($data->supervisor as $key => $value) : ?>
                                 <div>
-                                    <a href="<?= base_url('beranda/search?supervisor=' . rawurlencode($value->supervisor_name)) ?>" title="Klik disini untuk mencari dokumen lain dari pembimbing ini"><?= $value->supervisor_name ?></a> - <?= $value->supervisor_number ?> - Dosen Pembimbing <?= $value->level ?>
+                                    <a href="<?= base_url('beranda/search?supervisor=' . rawurlencode($value->supervisor_name)) ?>" title="Klik disini untuk mencari dokumen lain dari pembimbing ini"><?= esc($value->supervisor_name) ?></a> - <?= esc($value->supervisor_number) ?> - Dosen Pembimbing <?= esc($value->level) ?>
                                 </div>
                             <?php endforeach ?>
                         </td>
@@ -112,7 +112,7 @@
                         <td>
                             <?php foreach ($data->examiner as $key => $value) : ?>
                                 <div>
-                                    <a href="<?= base_url('beranda/search?examiner=' . rawurlencode($value->examiner_name)) ?>" title="Klik disini untuk mencari dokumen lain dari penguji ini"><?= $value->examiner_name ?></a> - <?= $value->examiner_number ?> - Ketua Penguji <?= $value->level ?>
+                                    <a href="<?= base_url('beranda/search?examiner=' . rawurlencode($value->examiner_name)) ?>" title="Klik disini untuk mencari dokumen lain dari penguji ini"><?= esc($value->examiner_name) ?></a> - <?= esc($value->examiner_number) ?> - Ketua Penguji <?= esc($value->level) ?>
                                 </div>
                             <?php endforeach ?>
                         </td>
@@ -122,20 +122,20 @@
                     <tr>
                         <th>Kode Prodi PDDIKTI</th>
                         <td>
-                            <div><?= $data->code_ministry ?></div>
+                            <div><?= esc($data->code_ministry) ?></div>
                         </td>
                     </tr>
 
                     <tr>
                         <th>Edisi</th>
                         <td>
-                            <div><?= $data->edition ?></div>
+                            <div><?= esc($data->edition) ?></div>
                         </td>
                     </tr>
                     <tr>
                         <th>Departement</th>
                         <td>
-                            <div><?= $data->departement ?></div>
+                            <div><?= esc($data->departement) ?></div>
                         </td>
                     </tr>
 
@@ -144,7 +144,7 @@
                         <td>
                             <?php foreach ($data->contributor as $key => $value) : ?>
                                 <div>
-                                    <a href="<?= base_url('beranda/search?contributor=' . rawurlencode($value->contributor_name)) ?>" title="Click to view others documents with this contributor"><?= $value->contributor_name ?></a> - Kontributor <?= $value->level ?>
+                                    <a href="<?= base_url('beranda/search?contributor=' . rawurlencode($value->contributor_name)) ?>" title="Click to view others documents with this contributor"><?= esc($value->contributor_name) ?></a> - Kontributor <?= esc($value->level) ?>
                                 </div>
                             <?php endforeach ?>
                         </td>
@@ -154,22 +154,22 @@
                         <th>Bahasa</th>
                         <td>
                             <div>
-                                <meta itemprop="inLanguage" property="inLanguage" content=""><?= $data->language ?>
+                                <meta itemprop="inLanguage" property="inLanguage" content=""><?= esc($data->language) ?>
                             </div>
                         </td>
                     </tr>
                     <tr>
                         <th>Penerbit</th>
                         <td>
-                            <span itemprop="publisher" property="publisher" itemtype="http://schema.org/Organization" itemscope=""><?= $data->publisher ?></span> :
-                            <span itemprop="publisher" property="publisher"><?= $data->publisher_place ?></span>.,
-                            <span itemprop="datePublished" property="datePublished"><?= $data->publish_year ?></span>
+                            <span itemprop="publisher" property="publisher" itemtype="http://schema.org/Organization" itemscope=""><?= esc($data->publisher) ?></span> :
+                            <span itemprop="publisher" property="publisher"><?= esc($data->publisher_place) ?></span>.,
+                            <span itemprop="datePublished" property="datePublished"><?= esc($data->publish_year) ?></span>
                         </td>
                     </tr>
                     <tr>
                         <th>Edisi</th>
                         <td>
-                            <div itemprop="bookEdition" property="bookEdition"><?= $data->edition ?></div>
+                            <div itemprop="bookEdition" property="bookEdition"><?= esc($data->edition) ?></div>
                         </td>
                     </tr>
                     <tr>
@@ -177,7 +177,7 @@
                         <td>
                             <?php foreach ($data->topic as $key => $value) : ?>
                                 <div class="s-subject" itemprop="keywords" property="keywords">
-                                    <a href="<?= base_url('beranda/search?topic=' . rawurlencode($value->topic)) ?>" title="Click to view others documents with this subject"> <?= $value->topic ?></a>
+                                    <a href="<?= base_url('beranda/search?topic=' . rawurlencode($value->topic)) ?>" title="Click to view others documents with this subject"> <?= esc($value->topic) ?></a>
                                 </div>
                             <?php endforeach ?>
                         </td>
@@ -185,19 +185,19 @@
                     <tr>
                         <th>No Panggil</th>
                         <td>
-                            <div><?= $data->call_number ?></div>
+                            <div><?= esc($data->call_number) ?></div>
                         </td>
                     </tr>
                     <tr>
                         <th>Copyright</th>
                         <td>
-                            <div><?= $data->copyright ?></div>
+                            <div><?= esc($data->copyright) ?></div>
                         </td>
                     </tr>
                     <tr>
                         <th>Doi</th>
                         <td>
-                            <div><a href="<?= $data->url_crossref ?>" target="_blank"><?= $data->url_crossref ?></a></div>
+                            <div><a href="<?= esc($data->url_crossref) ?>" target="_blank"><?= esc($data->url_crossref) ?></a></div>
                         </td>
                     </tr>
                 </tbody>
@@ -212,27 +212,16 @@
                     <div style="padding:30px;">
                         <div id="attachListLoad">
                             <ul class="attachList">
-                                <?php foreach ($data->attachment as $key => $value) :
+                                <?php $session = session(); foreach ($data->attachment as $key => $value) :
                                     if ($value->access_type == 'public'):
                                 ?>
                                         <li class="list-attachment">
                                             <strong>
-                                                <?php if (is_null($value->access_limit) || empty($value->access_limit)):
-                                                    $enc = base64_encode($data->biblio_id . '|' . $value->file_id . '|' . $value->file_name);
-                                                ?>
-                                                    <!-- <a class="openPopUp download_file" title="<?= $value->file_title ?>" href="<?= base_url('uploads/repository/' . $value->file_name) ?>" target="_BLANK"><?= $value->file_title ?></a> -->
-                                                    <a class="openPopUp download_file" data-file="<?= $enc ?>" title="<?= $value->file_title ?>" href="javascript:void(0)"><?= $value->file_title ?></a>
+                                                <?php $fileUrl = base_url('beranda/file/' . (int) $data->biblio_id . '/' . (int) $value->file_id); ?>
+                                                <?php if (empty($value->access_limit) || $session->has('user_id')): ?>
+                                                    <i class="fa fa-unlock"></i> <a class="openPopUp" title="<?= esc($value->file_title) ?>" href="<?= esc($fileUrl) ?>" target="_blank" rel="noopener"><?= esc($value->file_title) ?></a>
                                                 <?php else: ?>
-                                                    <?php if ($session->has('user_id')) : ?>
-                                                        <?php $limit_access = unserialize($value->access_limit);
-                                                        if (in_array(1, $limit_access)): ?>
-                                                            <i class="fa fa-unlock"></i> <a class="openPopUp" title="<?= $value->file_title ?>" href="<?= base_url('uploads/repository/' . $value->file_name) ?>" target="_BLANK"><?= $value->file_title ?></a>
-                                                        <?php else: ?>
-                                                            <i class="fa fa-lock"></i> <span>You have no authorization to access this attachment</span>
-                                                        <?php endif; ?>
-                                                    <?php else: ?>
-                                                        <i class="fa fa-lock"></i><a class="openPopUp" href="<?= base_url('login') ?>">Please login to access this attachment</a>
-                                                    <?php endif; ?>
+                                                    <i class="fa fa-lock"></i> <a class="openPopUp" href="<?= base_url('login') ?>">Please login to access this attachment</a>
                                                 <?php endif; ?>
                                             </strong>
                                         </li>

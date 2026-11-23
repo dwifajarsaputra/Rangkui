@@ -19,6 +19,7 @@ $_SESSION['IS_WORKING'] = 1;
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
     <link rel="stylesheet" href="<?= base_url('difoss/assets/css/bd-wizard.css'); ?>">
+    <script>var baseUrl = <?= json_encode(rtrim(base_url(), '/') . '/') ?>;</script>
 </head>
 
 <body>
@@ -48,7 +49,7 @@ $_SESSION['IS_WORKING'] = 1;
                         <tbody>
                             <tr>
                                 <td>PHP Version</td>
-                                <td> >= <?= $minPhpVersion; ?></td>
+                                <td> >= <?= esc($minPhpVersion) ?></td>
                                 <td>
                                     <?php
                                     if (version_compare(PHP_VERSION, $minPhpVersion, '<')) {
@@ -71,7 +72,7 @@ $_SESSION['IS_WORKING'] = 1;
                             <?php foreach ($php_ext as $extension): ?>
                                 <tr>
                                     <td></td>
-                                    <td><?= $extension; ?></td>
+                                    <td><?= esc($extension) ?></td>
                                     <td>
                                         <?php if (!extension_loaded($extension)): ?>
                                             <i class="fa fa-times text-danger"></i>Extension has not been activated

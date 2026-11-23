@@ -24,11 +24,11 @@
                 <tbody>
                     <?php foreach ($data as $value): ?>
                         <tr>
-                            <td><?= $value->member_type_name ?></td>
-                            <td><?= $value->loan_limit ?></td>
-                            <td><?= $value->member_periode ?></td>
-                            <td><?= $value->reborrow_limit ?></td>
-                            <td><?= $value->last_update ?></td>
+                            <td><?= esc($value->member_type_name) ?></td>
+                            <td><?= esc($value->loan_limit) ?></td>
+                            <td><?= esc($value->member_periode) ?></td>
+                            <td><?= esc($value->reborrow_limit) ?></td>
+                            <td><?= esc($value->last_update) ?></td>
                             <td align="center"><a class="btn btn-sm btn-info" href="<?= base_url("membership/edittype/?mt={$value->member_type_id}") ?>" title="Edit"><i class="fa fa-pencil"></i></a></td>
                         </tr>
                     <?php endforeach; ?>

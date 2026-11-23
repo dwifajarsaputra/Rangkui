@@ -19,7 +19,7 @@ header("Expires: 0");
         ?>
             <tr>
                 <td style="vertical-align: top;"><?= $i++ ?></td>
-                <td style="vertical-align: top;"><?= $value->title ?></td>
+                <td style="vertical-align: top;"><?= esc($value->title) ?></td>
                 <td>
                     <table border="1">
                         <thead>
@@ -31,8 +31,8 @@ header("Expires: 0");
                         <tbody>
                             <?php foreach ($value->attachment as $attachment): ?>
                                 <tr>
-                                    <td style="vertical-align: top;"><?= $attachment->file_name  ?> </td>
-                                    <td style="vertical-align: top;text-align: right; color:<?= $attachment->count > 0 ? "green" : "red" ?>"><?= $attachment->count  ?> downloaded</td>
+                                    <td style="vertical-align: top;"><?= esc($attachment->file_name) ?> </td>
+                                    <td style="vertical-align: top;text-align: right; color:<?= $attachment->count > 0 ? "green" : "red" ?>"><?= esc($attachment->count) ?> downloaded</td>
                                 </tr>
                             <?php endforeach ?>
                         </tbody>

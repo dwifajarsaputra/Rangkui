@@ -1,7 +1,7 @@
 <div class="alert alert-success alert-dismissible " role="alert">
     <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">×</span>
     </button>
-    <strong>Welcome back </strong> <?= $user; ?>.
+    <strong>Welcome back </strong> <?= esc($user) ?>.
 </div>
 <div class="row">
     <div class="x_panel">
@@ -16,7 +16,7 @@
                     <div class="tile-stats">
                         <div class="icon"><i class="fa fa-users"></i>
                         </div>
-                        <div class="count"><?= $penguji ?> <small class="h6">Persons</small></div>
+                        <div class="count"><?= esc($penguji) ?> <small class="h6">Persons</small></div>
 
                         <h3>Examiner</h3>
                     </div>
@@ -25,7 +25,7 @@
                     <div class="tile-stats">
                         <div class="icon"><i class="fa fa-users"></i>
                         </div>
-                        <div class="count"><?= $dosen ?> <small class="h6">Persons</small></div>
+                        <div class="count"><?= esc($dosen) ?> <small class="h6">Persons</small></div>
 
                         <h3>Lecturer</h3>
                     </div>
@@ -34,7 +34,7 @@
                     <div class="tile-stats">
                         <div class="icon"><i class="fa fa-user"></i>
                         </div>
-                        <div class="count"><?= $penulis ?> <small class="h6">Persons</small></div>
+                        <div class="count"><?= esc($penulis) ?> <small class="h6">Persons</small></div>
 
                         <h3>Writer</h3>
                     </div>
@@ -48,7 +48,7 @@
                     <div class="tile-stats">
                         <div class="icon"><i class="fa fa-book"></i>
                         </div>
-                        <div class="count"><?= $judul ?> <small class="h6">Title</small></div>
+                        <div class="count"><?= esc($judul) ?> <small class="h6">Title</small></div>
 
                         <h3>ETD </h3>
                     </div>
@@ -57,7 +57,7 @@
                     <div class="tile-stats">
                         <div class="icon"><i class="fa fa-list-alt"></i>
                         </div>
-                        <div class="count"><?= $gmd ?><small class="h6"> Classification</small></div>
+                        <div class="count"><?= esc($gmd) ?><small class="h6"> Classification</small></div>
 
                         <h3>GMD</h3>
                     </div>

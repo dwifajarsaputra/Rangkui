@@ -54,12 +54,12 @@
                 <tbody id="tbody-data">
                     <?php foreach ($list_report->getResult() as $val):  ?>
                         <tr>
-                            <td><?= $val->realname; ?></td>
-                            <td><?= $val->username; ?></td>
-                            <td><?= $val->biblio_total; ?></td>
-                            <td><?= $val->item_total; ?></td>
-                            <td><?= $val->member_total; ?></td>
-                            <td><?= $val->circulation_total; ?></td>
+                            <td><?= esc($val->realname) ?></td>
+                            <td><?= esc($val->username) ?></td>
+                            <td><?= esc($val->biblio_total) ?></td>
+                            <td><?= esc($val->item_total) ?></td>
+                            <td><?= esc($val->member_total) ?></td>
+                            <td><?= esc($val->circulation_total) ?></td>
                         </tr>
                     <?php endforeach ?>
                 </tbody>

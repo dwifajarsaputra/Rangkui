@@ -35,7 +35,7 @@
                             <select name="filter" id="filter-type" onchange="withFilter(this)" class="form-control select2" data-placeholder="-- Pilih Tipe Keanggotaan -- ">
                                 <option value=""></option>
                                 <?php foreach ($list_option as $val) : ?>
-                                    <option value="<?= $val->name; ?>"><?= $val->text ?></option>
+                                    <option value="<?= esc($val->name) ?>"><?= esc($val->text) ?></option>
                                 <?php endforeach ?>
                             </select>
                         </div>

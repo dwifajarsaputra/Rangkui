@@ -24,12 +24,12 @@
                         foreach ($list_konten as $key => $val) : ?>
                             <tr>
                                 <td><?= $i++; ?></td>
-                                <td><?= $val->content_title; ?></td>
-                                <td><?= $val->content_path; ?></td>
-                                <td><?= $val->last_update; ?></td>
+                                <td><?= esc($val->content_title) ?></td>
+                                <td><?= esc($val->content_path) ?></td>
+                                <td><?= esc($val->last_update) ?></td>
                                 <td>
                                     <a href="<?= base_url('sistem/konten/edit/' . $val->content_id); ?>" class="btn btn-sm btn-info"><i class="fa fa-pencil"></i></a>
-                                    <button type="button" class="btn btn-sm btn-danger" onclick="showConfirm(<?= $val->content_id ?>)"><i class="fa fa-trash"></i></button>
+                                    <button type="button" class="btn btn-sm btn-danger" onclick="showConfirm(<?= esc($val->content_id) ?>)"><i class="fa fa-trash"></i></button>
                                 </td>
                             </tr>
                         <?php endforeach ?>

@@ -34,128 +34,113 @@ class BackupController extends BaseController
 
     public function add()
     {
-        $log_message = "{$this->session->name} trying backup ";
-        Services::writeLog(getTypeUser($this->session->user_type), $this->session->user_id, 'Backup', $log_message);
-
-        sleep(2);
-
-        // Services::writeLog()
-        $output = '';
-        // turn on implicit flush
-        ob_implicit_flush();
-        // checking if the binary can be executed
-        $mysql_dump_path = shell_exec('where mysqldump');
-
-        $time2append = date("Ymd_His");
+        $user = (string) $this->session->name;
+        Services::writeLog(getTypeUser($this->session->user_type), $this->session->user_id, 'Backup', "{$user} trying backup");
 
         $backupPath = WRITEPATH . 'backup';
-        $fullPath = $backupPath . DS . "backup_{$time2append}.sql";
-
-        $exist_dir = false;
-        $writable_dir = false;
-        // Cek apakah folder 'backup' ada
-        if (!is_dir($backupPath)) {
-            // Jika tidak ada, buat folder dengan izin akses bisa ditulis
-            if (mkdir($backupPath, 0777, true)) {
-                $exist_dir = true;
-                $writable_dir = true;
-            }
-        } else {
-            // Jika ada, cek apakah bisa ditulis
-            if (!is_writable($backupPath)) {
-                // Jika tidak bisa ditulis, ubah izin aksesnya
-                if (chmod($backupPath, 0777)) {
-                    $exist_dir = true;
-                    $writable_dir = true;
-                }
-            } else {
-                $writable_dir = true;
-                $exist_dir = true;
-            }
+        if (! is_dir($backupPath) && ! @mkdir($backupPath, 0750, true) && ! is_dir($backupPath)) {
+            return $this->_backupFailed('Folder backup tidak dapat dibuat: ' . $backupPath);
+        }
+        if (! is_writable($backupPath)) {
+            return $this->_backupFailed('Folder backup tidak dapat ditulis: ' . $backupPath);
         }
 
-        if ($exist_dir === true &&  $writable_dir === true) {
-            $db_host = $this->db->hostname;
-            $db_name = $this->db->database;
-            $db_user = $this->db->username;
-            $db_password = $this->db->password;
-
-            $mysql_dump_path = trim($mysql_dump_path);
-            $command = "{$mysql_dump_path} -B {$db_name} ";
-            $command .= "--no-create-db --quick --user={$db_user} ";
-            $command .= "--password={$db_password} ";
-            $command .= "--host={$db_host} ";
-            $command .= " > {$fullPath} ";
-
-            exec($command, $output, $status);
-
-            if ($status == COMMAND_SUCCESS || $status == 1) {
-
-                $user_id = $this->session->user_id;
-                $backup_time = date("Y-m-d H:i:s");
-
-                $data = [
-                    'user_id' => $user_id,
-                    'backup_time' => $backup_time,
-                    'backup_file' => $this->db->escapeString($fullPath),
-                ];
-
-                $output = "Backup SUCCESSFUL, backup files saved to {$backupPath} !";
-
-                if (!preg_match('@^WIN.*@i', PHP_OS)) {
-                    // get current directory path
-                    $curr_dir = getcwd();
-                    // change current PHP working dir
-                    @chdir($backupPath);
-                    // compress the backup using tar gz
-
-                    $command = "";
-                    $command .= "tar cvzf backup_{$time2append}.sql.tar.gz";
-                    $command .= " backup_{$time2append}.sql";
-
-                    exec($command, $outputs, $status);
-                    if ($status == COMMAND_SUCCESS) {
-                        // delete the original file
-                        @unlink($data['backup_file']);
-                        $output .= "File is compressed using tar gz archive format";
-
-                        $fullPath = $backupPath . DS . "backup_{$time2append}.sql.tar.gz";
-
-                        $data['backup_file'] = $this->db->escapeString($fullPath);
-                    }
-                    // return to previous PHP working dir
-                    @chdir($curr_dir);
-                }
-
-                $b = new BackupModel();
-
-                $this->db->transBegin();
-
-                $b->insert($data);
-
-
-                if ($this->db->transStatus() === false) {
-                    $this->db->transRollback();
-                    slim_alert('error', $this->db->error());
-                    $log_message = "{$this->session->name} backup failed : {$this->db->error}";
-                } else {
-                    $this->db->transCommit();
-                    slim_alert('success', "Backup database success, {$this->db->escapeString($output)}");
-                    $log_message = "{$this->session->name} backup success}";
-                }
-            } else if ($status == COMMAND_FAILED) {
-                $log_message = 'Backup FAILED! Wrong user or password to connect to database server!';
-                slim_alert('error', $log_message);
-            }
-        } else {
-            $log_message = "Backup FAILED! The Backup directory is not exists or not writeable";
-            $log_message .= "Contact System Administrator for the right path of backup directory";
-
-            slim_alert('error', $log_message);
+        $mysqldump = $this->_findMysqldump();
+        if ($mysqldump === null) {
+            return $this->_backupFailed('Program mysqldump tidak ditemukan. Pasang paket mysql-client/mariadb-client, atau isi backup.mysqldumpPath di .env.');
         }
 
-        Services::writeLog(getTypeUser($this->session->user_type), $this->session->user_id, 'Backup', $log_message);
+        // Kredensial lewat berkas opsi sementara (0600), BUKAN argumen command line yang terlihat di `ps`.
+        $optionsFile = tempnam(sys_get_temp_dir(), 'rkdump');
+        chmod($optionsFile, 0600);
+        file_put_contents($optionsFile, sprintf(
+            "[client]\nuser=\"%s\"\npassword=\"%s\"\nhost=\"%s\"\nport=%d\n",
+            addcslashes((string) $this->db->username, '"\\'),
+            addcslashes((string) $this->db->password, '"\\'),
+            addcslashes((string) $this->db->hostname, '"\\'),
+            (int) ($this->db->port ?: 3306)
+        ));
+
+        $sqlFile = $backupPath . DIRECTORY_SEPARATOR . 'backup_' . date('Ymd_His') . '.sql';
+        $command = escapeshellarg($mysqldump)
+            . ' --defaults-extra-file=' . escapeshellarg($optionsFile)
+            . ' --single-transaction --quick --routines --no-create-db'
+            . ' --result-file=' . escapeshellarg($sqlFile)
+            . ' ' . escapeshellarg((string) $this->db->database) . ' 2>&1';
+
+        $output = [];
+        $status = 1;
+        exec($command, $output, $status);
+        @unlink($optionsFile);
+
+        if ($status !== 0 || ! is_file($sqlFile) || filesize($sqlFile) === 0) {
+            @unlink($sqlFile);
+            log_message('error', 'mysqldump failed: ' . implode("\n", $output));
+
+            return $this->_backupFailed('Backup gagal: ' . (trim(implode(' ', $output)) ?: 'mysqldump keluar dengan status ' . $status));
+        }
+
+        // Kompres dengan gzip langsung dari PHP (tidak bergantung pada `tar` & chdir).
+        $finalFile = $sqlFile;
+        if (function_exists('gzopen')) {
+            $gz = gzopen($sqlFile . '.gz', 'wb6');
+            $in = fopen($sqlFile, 'rb');
+            while (! feof($in)) {
+                gzwrite($gz, (string) fread($in, 1048576));
+            }
+            fclose($in);
+            gzclose($gz);
+            unlink($sqlFile);
+            $finalFile = $sqlFile . '.gz';
+        }
+
+        (new BackupModel())->insert([
+            'user_id'     => $this->session->user_id,
+            'backup_time' => date('Y-m-d H:i:s'),
+            // Kolom backup_file hanya varchar(100): simpan nama berkas saja, bukan path absolut.
+            'backup_file' => basename($finalFile),
+        ]);
+
+        slim_alert('success', 'Backup database berhasil: ' . basename($finalFile));
+        Services::writeLog(getTypeUser($this->session->user_type), $this->session->user_id, 'Backup', "{$user} backup success");
+
         return redirect()->to('sistem/backups');
+    }
+
+    private function _backupFailed(string $message)
+    {
+        slim_alert('error', $message);
+        Services::writeLog(getTypeUser($this->session->user_type), $this->session->user_id, 'Backup', $message);
+
+        return redirect()->to('sistem/backups');
+    }
+
+    /**
+     * Cari mysqldump lintas platform (dulu hanya `where mysqldump` yang khusus Windows).
+     */
+    private function _findMysqldump(): ?string
+    {
+        $configured = trim((string) env('backup.mysqldumpPath', ''));
+        if ($configured !== '' && is_executable($configured)) {
+            return $configured;
+        }
+
+        $isWindows = stripos(PHP_OS_FAMILY, 'Windows') === 0;
+        foreach (['mysqldump', 'mariadb-dump'] as $bin) {
+            $found = trim((string) @shell_exec(($isWindows ? 'where ' : 'command -v ') . $bin . ($isWindows ? ' 2>NUL' : ' 2>/dev/null')));
+            $found = strtok($found, "\r\n") ?: '';
+            if ($found !== '' && is_file($found)) {
+                return $found;
+            }
+        }
+
+        foreach (['/usr/bin/mysqldump', '/usr/local/bin/mysqldump', '/usr/local/mysql/bin/mysqldump', '/opt/lampp/bin/mysqldump', 'C:\\xampp\\mysql\\bin\\mysqldump.exe', 'C:\\laragon\\bin\\mysql\\mysql-8.0.30-winx64\\bin\\mysqldump.exe'] as $path) {
+            if (is_file($path)) {
+                return $path;
+            }
+        }
+
+        return null;
     }
 
     function download($id)
@@ -169,9 +154,16 @@ class BackupController extends BaseController
             throw PageNotFoundException::forPageNotFound();
         } else {
 
-            $filePath = $backupFile->backup_file;
+            $filePath = (string) $backupFile->backup_file;
+            if (basename($filePath) === $filePath) {
+                $filePath = WRITEPATH . 'backup' . DIRECTORY_SEPARATOR . $filePath;
+            }
+            $realDir  = realpath(WRITEPATH . 'backup');
+            $realFile = realpath((string) $filePath);
 
-            if (file_exists($filePath)) {
+            // Hanya berkas di dalam writable/backup yang boleh diunduh.
+            if ($realDir !== false && $realFile !== false && str_starts_with($realFile, $realDir . DIRECTORY_SEPARATOR) && is_file($realFile)) {
+                $filePath = $realFile;
 
                 $log_message = "Download backup file";
                 Services::writeLog(getTypeUser($this->session->user_type), $this->session->user_id, 'Backup', $log_message);
@@ -182,7 +174,7 @@ class BackupController extends BaseController
                 $log_message = "Download backup file failed";
                 Services::writeLog(getTypeUser($this->session->user_type), $this->session->user_id, 'Backup', $log_message);
 
-                slim_alert('error', "File not found : {$filePath}");
+                slim_alert('error', 'File backup tidak ditemukan.');
                 return redirect()->to('sistem/backups');
             }
         }

@@ -1,0 +1,3 @@
+# Lampiran disajikan lewat /beranda/file/{biblio}/{file} yang memeriksa hak akses.
+# Akses langsung ke berkas lama di folder ini ditolak.
+Require all denied

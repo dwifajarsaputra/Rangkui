@@ -24,9 +24,9 @@
                                 </thead>
                                 <tbody>
                                     <?php foreach ($data as $value): ?>
-                                        <tr role="row" class="odd" onclick="showMm(<?= $value->author_id ?>, '<?= $value->author_name ?>')" style="cursor: pointer;">
-                                            <td class="sorting_1"><?= $value->author_name ?></td>
-                                            <td><?= $value->input_date ?></td>
+                                        <tr role="row" class="odd" onclick="showMm(<?= esc($value->author_id) ?>, '<?= esc($value->author_name) ?>')" style="cursor: pointer;">
+                                            <td class="sorting_1"><?= esc($value->author_name) ?></td>
+                                            <td><?= esc($value->input_date) ?></td>
                                             <td><?= getAuthorityName($value->authority_type) ?> </td>
                                         </tr>
                                     <?php endforeach; ?>

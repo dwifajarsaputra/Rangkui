@@ -217,8 +217,8 @@ function hapusAttahcment(b_id, f_id) {
   };
 }
 
-function openFileInNewTab(url) {
-  window.open(baseUrl + "uploads/repository/" + url, "_blank");
+function openFileInNewTab(biblioId, fileId) {
+  window.open(`${baseUrl}beranda/file/${biblioId}/${fileId}`, "_blank");
 }
 
 const showConfirm = (id) => {

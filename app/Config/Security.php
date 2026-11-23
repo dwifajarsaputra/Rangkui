@@ -33,7 +33,7 @@ class Security extends BaseConfig
      *
      * Token name for Cross Site Request Forgery protection.
      */
-    public string $tokenName = 'csrf_etd_walanae';
+    public string $tokenName = 'csrf_rangkui';
 
     /**
      * --------------------------------------------------------------------------
@@ -51,7 +51,7 @@ class Security extends BaseConfig
      *
      * Cookie name for Cross Site Request Forgery protection.
      */
-    public string $cookieName = 'csrf_cookie_walanae';
+    public string $cookieName = 'csrf_cookie_rangkui';
 
     /**
      * --------------------------------------------------------------------------

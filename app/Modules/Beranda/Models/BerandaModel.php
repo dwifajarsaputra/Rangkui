@@ -15,15 +15,19 @@ class BerandaModel extends BaseModel
 
     public function biblio($biblio_id = null, $limit = null)
     {
-        $where = $lm = '';
+        $binds = [];
+        // Koleksi yang disembunyikan dari OPAC tidak boleh tampil di halaman publik.
+        $where = ' WHERE (b.opac_hide IS NULL OR b.opac_hide = 0) ';
+        $lm    = '';
         if (!is_null($biblio_id)) {
-            $where  = " WHERE b.biblio_id = $biblio_id ";
-            $result = false;
+            $where  .= ' AND b.biblio_id = ? ';
+            $binds[] = (int) $biblio_id;
+            $result  = false;
         } else {
             $result = [];
         }
         if (!is_null($limit)) {
-            $lm = " LIMIT $limit ";
+            $lm = ' LIMIT ' . max(1, (int) $limit) . ' ';
         }
         $sql = "SELECT
                     b.*,
@@ -39,7 +43,7 @@ class BerandaModel extends BaseModel
                     biblio b 
                  $where ORDER BY b.biblio_id DESC 
                  $lm;";
-        $query  = $this->db->query($sql);
+        $query  = $this->db->query($sql, $binds);
         if ($query->getNumRows() > 0) {
             if (!is_null($biblio_id)) {
                 $result = $query->getRow();
@@ -59,8 +63,8 @@ class BerandaModel extends BaseModel
             JOIN mst_author ma ON
                 ma.author_id = ba.author_id
             WHERE
-                ba.biblio_id =$biblio_id";
-        $query  = $this->db->query($sql);
+                ba.biblio_id = ?";
+        $query  = $this->db->query($sql, [(int) $biblio_id]);
         $result = [];
         if ($query->getNumRows() > 0) {
             $result = $query->getResult();
@@ -78,8 +82,8 @@ class BerandaModel extends BaseModel
                 JOIN mst_supervisor ms ON
                     bs.supervisor_id = ms.supervisor_id
                 WHERE
-                    bs.biblio_id = $biblio_id";
-        $query  = $this->db->query($sql);
+                    bs.biblio_id = ?";
+        $query  = $this->db->query($sql, [(int) $biblio_id]);
         $result = [];
         if ($query->getNumRows() > 0) {
             $result = $query->getResult();
@@ -96,8 +100,8 @@ class BerandaModel extends BaseModel
                 JOIN mst_examiner me ON
                     be.examiner_id = me.examiner_id
                 WHERE
-                    be.biblio_id = $biblio_id";
-        $query  = $this->db->query($sql);
+                    be.biblio_id = ?";
+        $query  = $this->db->query($sql, [(int) $biblio_id]);
         $result = [];
         if ($query->getNumRows() > 0) {
             $result = $query->getResult();
@@ -114,8 +118,8 @@ class BerandaModel extends BaseModel
                 JOIN mst_contributor mc ON
                     bc.contributor_id = mc.contributor_id 
                 WHERE
-                    bc.biblio_id = $biblio_id";
-        $query  = $this->db->query($sql);
+                    bc.biblio_id = ?";
+        $query  = $this->db->query($sql, [(int) $biblio_id]);
         $result = [];
         if ($query->getNumRows() > 0) {
             $result = $query->getResult();
@@ -131,8 +135,8 @@ class BerandaModel extends BaseModel
                 JOIN mst_topic mt ON
                     bt.topic_id = mt.topic_id 
                 WHERE
-                    bt.biblio_id = $biblio_id";
-        $query  = $this->db->query($sql);
+                    bt.biblio_id = ?";
+        $query  = $this->db->query($sql, [(int) $biblio_id]);
         $result = [];
         if ($query->getNumRows() > 0) {
             $result = $query->getResult();
@@ -150,8 +154,8 @@ class BerandaModel extends BaseModel
                 JOIN files f ON
                     f.file_id = ba.file_id
                 WHERE
-                    ba.biblio_id = $biblio_id";
-        $query  = $this->db->query($sql);
+                    ba.biblio_id = ?";
+        $query  = $this->db->query($sql, [(int) $biblio_id]);
         $result = [];
         if ($query->getNumRows() > 0) {
             $result = $query->getResult();
@@ -185,108 +189,107 @@ class BerandaModel extends BaseModel
 
         return $result;
     }
+    /**
+     * Kolom search_biblio yang boleh dipakai untuk pencarian spesifik (whitelist).
+     */
+    public const SEARCHABLE_COLUMNS = [
+        'title', 'author', 'topic', 'publisher', 'publish_year', 'isbn_issn',
+        'supervisor', 'examiner', 'contributor', 'call_number', 'classification',
+        'gmd', 'location', 'collection_types', 'language', 'notes',
+    ];
+
+    private function _searchColumns(): array
+    {
+        static $cols = null;
+        if ($cols === null) {
+            $existing = $this->db->getFieldNames('search_biblio');
+            $cols     = array_values(array_intersect(self::SEARCHABLE_COLUMNS, $existing));
+        }
+
+        return $cols;
+    }
+
+    /**
+     * Apakah kolom ini boleh dicari?
+     */
+    public function isSearchableColumn(?string $column): bool
+    {
+        return $column !== null && in_array($column, $this->_searchColumns(), true);
+    }
+
+    private function _hiddenFilter($builder)
+    {
+        // search_biblio tidak selalu punya kolom opac_hide; filter lewat tabel biblio.
+        return $builder->whereNotIn('biblio_id', static function ($sub) {
+            return $sub->select('biblio_id')->from('biblio')->where('opac_hide', 1);
+        });
+    }
+
+    private function _mongoSearch(array $columns, string $get): array
+    {
+        if (! class_exists(\MongoDB\Client::class)) {
+            return [];
+        }
+        try {
+            $collection = Services::mongo()->biblio;
+            // Escape regex agar input pengguna diperlakukan sebagai teks biasa (mencegah ReDoS/injeksi).
+            $regex = new \MongoDB\BSON\Regex(preg_quote($get, '/'), 'i');
+            $or    = [];
+            foreach ($columns as $column) {
+                $or[] = [$column => $regex];
+            }
+            $result_array = $collection->find(['$or' => $or], ['limit' => 500])->toArray();
+
+            return json_decode(json_encode($result_array), false) ?: [];
+        } catch (\Throwable $e) {
+            log_message('error', 'Mongo search failed: ' . $e->getMessage());
+
+            return [];
+        }
+    }
+
     function search_biblio($get)
     {
-        $result     = [];
-        $index_type = env('INDEX_TYPE', 'mysql');
-        if ($index_type == "mysql") {
-
-            $search_column = ['title', 'author', 'topic'];
-            $filter = '';
-            foreach ($search_column as $key => $column) {
-                if ($key > 0) {
-                    $filter .= " OR ";
-                }
-                $filter .= " $column LIKE '%$get%' ";
-            }
-            $sql = "SELECT
-                    *
-                FROM
-                    search_biblio
-                WHERE $filter
-                ORDER BY biblio_id DESC";
-            $query  = $this->db->query($sql);
-            if ($query->getNumRows() > 0) {
-                $result = $query->getResult();
-            }
-        } else {
-            $mongo = Services::mongo();
-            //check avaibility mongodb
-            $output = "";
-            exec("php -i | grep -i mongodb", $output);
-
-            $filteredArray = array_filter($output, function ($item) {
-                return strpos($item, 'MONGO_URL') === false;
-            });
-
-            if ($filteredArray !== "" || $filteredArray == true) {
-                $packageMongo = \Composer\InstalledVersions::getPrettyVersion('mongodb/mongodb');
-
-                if (!is_null($packageMongo)) {
-                    $collection = $mongo->biblio;
-
-
-                    try {
-                        $filter = [
-                            '$or' => [
-                                ['author' => ['$regex' => $get, '$options' => 'i']],
-                                ['title'  => ['$regex' => $get, '$options' => 'i']],
-                                ['topic'  => ['$regex' => $get, '$options' => 'i']],
-                            ]
-                        ];
-                        $result_array = $collection->find($filter)->toArray();
-                        $result       = json_decode(json_encode($result_array), FALSE);
-                    } catch (Exception $e) {
-
-                        return $result = [];
-                    }
-                }
-            }
+        $get = mb_substr(trim((string) $get), 0, 200);
+        if ($get === '') {
+            return [];
         }
-        return $result;
+
+        if (env('INDEX_TYPE', 'mysql') !== 'mysql') {
+            return $this->_mongoSearch(['title', 'author', 'topic'], $get);
+        }
+
+        $builder = $this->db->table('search_biblio')
+            ->groupStart()
+            ->like('title', $get)
+            ->orLike('author', $get)
+            ->orLike('topic', $get)
+            ->groupEnd();
+
+        return $this->_hiddenFilter($builder)
+            ->orderBy('biblio_id', 'DESC')
+            ->limit(500)
+            ->get()
+            ->getResult();
     }
+
     function search_biblio_specific($column, $get)
     {
-        $get        = rawurldecode($get);
-        $result     = [];
-        $index_type = $_ENV['INDEX_TYPE'];
-        if ($index_type == "mysql") {
-
-            $sql = "SELECT
-                    *
-                FROM
-                    search_biblio
-                WHERE $column LIKE '%$get%' 
-                ORDER BY biblio_id DESC";
-            $query  = $this->db->query($sql);
-            if ($query->getNumRows() > 0) {
-                $result = $query->getResult();
-            }
-        } else {
-            $mongo = Services::mongo();
-            //check avaibility mongodb
-            $output = "";
-            exec("php -i | grep -i mongodb", $output);
-
-            $filteredArray = array_filter($output, function ($item) {
-                return strpos($item, 'MONGO_URL') === false;
-            });
-
-            if ($filteredArray !== "" || $filteredArray == true) {
-                $packageMongo = \Composer\InstalledVersions::getPrettyVersion('mongodb/mongodb');
-
-                if (!is_null($packageMongo)) {
-                    $collection = $mongo->biblio;
-                    $filter = [
-                        '$or' => [
-                            [$column => ['$regex' => $get, '$options' => 'i']],
-                        ]
-                    ];
-                    $result_array = $collection->find($filter)->toArray();
-                    $result       = json_decode(json_encode($result_array), FALSE);
-                }
-            }
+        $get = mb_substr(trim(rawurldecode((string) $get)), 0, 200);
+        if ($get === '' || ! $this->isSearchableColumn($column)) {
+            return [];
         }
-        return $result;
+
+        if (env('INDEX_TYPE', 'mysql') !== 'mysql') {
+            return $this->_mongoSearch([$column], $get);
+        }
+
+        $builder = $this->db->table('search_biblio')->like($column, $get);
+
+        return $this->_hiddenFilter($builder)
+            ->orderBy('biblio_id', 'DESC')
+            ->limit(500)
+            ->get()
+            ->getResult();
     }
 }

@@ -4,6 +4,8 @@ namespace App\Modules\Bibliography\Controllers;
 
 // use App\Modules\BibliographyController\Models\BibliographyControllerModel;
 use App\Controllers\BaseController;
+use App\Libraries\SecureUpload;
+use App\Modules\System\Models\IndexBiblioModel;
 use App\Modules\Bibliography\Models\BibliographyModel;
 use CodeIgniter\Files\File;
 use CodeIgniter\HTTP\Files\UploadedFile;
@@ -47,23 +49,8 @@ class BibliographyController extends BaseController
     public function save()
     {
         $postData = $this->request->getPost();
-        // upload image
-        $image       = '';
-        $user        = $this->session->name;
-        $filename    = (string) $_FILES['image']['name'];
-        $configImage = $this->_configBerkas($filename, $user);
-        $imageFile   = $this->request->getFile('image');
-        if ($imageFile->isValid() && !$imageFile->hasMoved()) {
-            if (!is_dir($configImage['upload_path'])) {
-                mkdir($configImage['upload_path'], 0755, true);
-            }
-            $image = $configImage['file_name'];
-            $imageFile->move($configImage['upload_path'], $image);
-        } else {
-            if (!empty($_FILES['image']['name'])) {
-                slim_alert('error', 'Failed to save image, please re-upload.');
-            }
-        }
+        // upload image (ekstensi & jenis berkas diverifikasi dari isi berkas)
+        $image = $this->_storeCover();
 
         // biblio table
         $data = [
@@ -86,7 +73,7 @@ class BibliographyController extends BaseController
             'classification'   => $postData['class'] ?? null,
             'notes'            => $postData['notes'] ?? null,
             'spec_detail_info' => $postData['specDetailInfo'] ?? null,
-            'image'            => $image,
+            'image'            => $image ?? '',
             'url_crossref'     => $postData['urlcrossref'] ?? null,
             'opac_hide'        => 0,
             'promoted'         => 0,
@@ -104,6 +91,18 @@ class BibliographyController extends BaseController
         }
 
         $result       = $biblio->insertBilioSub($lastId, $postData, FALSE);
+        // Lampiran dari formulir tambah (dulu diabaikan; hanya formulir edit yang memprosesnya).
+        $this->uploadattachment(
+            $this->session->user_id,
+            $postData['url_file'] ?? [],
+            $lastId,
+            null,
+            $postData['akses_file'] ?? [],
+            $postData['akses_member'] ?? [],
+            $postData['title_file'] ?? [],
+            $postData['desk_file'] ?? []
+        );
+        (new IndexBiblioModel())->reindexOne((int) $lastId);
         if ($result) {
             slim_alert('success', 'Successfully Added Document.');
         } else {
@@ -114,18 +113,16 @@ class BibliographyController extends BaseController
     function uploadattachment($user,  $url, $biblio_id, $fl,  $aksesFiles = [], $aksesMembers = null, $title = [], $desk_file = null)
     {
         $filenm = '';
-        $files  = $this->request->getFiles()['attc_file'];
+        $files  = $this->request->getFiles()['attc_file'] ?? [];
         foreach ($files as $i => $file) {
-            if ($file->isValid() && !$file->hasMoved()) {
-                $config   = $this->_configBerkas($file->getName(), $user . $biblio_id, 'attahcment',  $i);
-                $filenm   = $config['file_name'];
-                $filepath = $config['upload_path'];
-                $file->move($filepath, $filenm);
+            $stored = $this->_storeAttachment($file);
+            if ($stored !== null) {
                 $data = [
                     "file_title"  => isset($title[$i]) ? $title[$i] : '-',
                     "file_desc"   => isset($desk_file[$i]) ? $desk_file[$i] : '-',
-                    "file_name"   => $filenm,
-                    "file_dir"    => $filepath,
+                    "file_name"   => $stored['file_name'],
+                    "file_dir"    => $stored['file_dir'],
+                    "mime_type"   => $stored['mime_type'],
                     "file_url"    => '',
                     "uploader_id" => $this->session->user_id,
                     "input_date"  => date('Y-m-d H:i:s'),
@@ -141,8 +138,6 @@ class BibliographyController extends BaseController
                 ];
 
                 $biblio->insertBiblioFiles($data_biblio);
-            } else {
-                $error = $file->getErrorString();
             }
         }
     }
@@ -187,7 +182,6 @@ class BibliographyController extends BaseController
             'opac_hide'        => 0,
             'promoted'         => 0,
             'frequency_id'     => 0,
-            'input_date'       => date('Y-m-d H:i:s'),
             'last_update'      => date('Y-m-d H:i:s')
         ];
         $biblio_id   = $postData['biblio_id'];
@@ -220,30 +214,14 @@ class BibliographyController extends BaseController
                 $image        = '';
                 $attach       = '';
                 $user         = $this->session->user_id;
-                $filename     = (string) $_FILES['image']['name'];
-                $configImage  = $this->_configBerkas($filename, $user);
-                $imageFile    = $this->request->getFile('image');
                 // upload attachment
-                $titles       = $postData['title_file'];
-                $urls         = $postData['url_file'];
-                $descriptions = $postData['desk_file'];
-                $aksesFiles   = $postData['akses_file'];
-                $aksesMembers = $postData['akses_member'];
+                $titles       = $postData['title_file'] ?? [];
+                $urls         = $postData['url_file'] ?? [];
+                $descriptions = $postData['desk_file'] ?? [];
+                $aksesFiles   = $postData['akses_file'] ?? [];
+                $aksesMembers = $postData['akses_member'] ?? [];
 
-                if ($imageFile->isValid() && !$imageFile->hasMoved()) {
-
-
-                    if (!is_dir($configImage['upload_path'])) {
-
-                        mkdir($configImage['upload_path'], 0755, true);
-                    }
-
-                    $image = $configImage['file_name'];
-                    $imageFile->move($configImage['upload_path'], $image);
-                } else {
-
-                    $image = null;
-                }
+                $image = $this->_storeCover();
 
                 if (!empty($image)) {
                     $data['image'] = $image;
@@ -254,7 +232,8 @@ class BibliographyController extends BaseController
                 $biblio->update();
 
                 $biblio->insertBilioSub($biblio_id, $postData, TRUE);
-                $this->uploadattachment($user, $urls, $biblio_id, $_FILES['attc_file'], $aksesFiles, $aksesMembers, $titles, $descriptions);
+                (new IndexBiblioModel())->reindexOne((int) $biblio_id);
+                $this->uploadattachment($user, $urls, $biblio_id, null, $aksesFiles, $aksesMembers, $titles, $descriptions);
 
                 // Handle updates to existing attachments
                 if (isset($postData['edit_file_id']) && is_array($postData['edit_file_id'])) {
@@ -293,17 +272,9 @@ class BibliographyController extends BaseController
                         }
 
                         // Handle file upload if a new file is provided for this attachment
-                        if (isset($_FILES['edit_attc_file']['name'][$index]) && !empty($_FILES['edit_attc_file']['name'][$index])) {
-                            $file = $this->request->getFile("edit_attc_file.$index");
-                            if ($file && $file->isValid() && !$file->hasMoved()) {
-                                $config = $this->_configBerkas($file->getName(), $user . $biblio_id, 'attachment', 0);
-                                $fileName = $config['file_name'];
-                                $filePath = $config['upload_path'];
-                                $file->move($filePath, $fileName);
-                                $fileData['file_name'] = $fileName;
-                                $fileData['file_dir'] = $filePath;
-                                $fileData['mime_type'] = $file->getMimeType();
-                            }
+                        $stored = $this->_storeAttachment($this->request->getFile("edit_attc_file.$index"));
+                        if ($stored !== null) {
+                            $fileData = $stored + $fileData;
                         }
 
                         // Update the file and biblio attachment records
@@ -338,6 +309,8 @@ class BibliographyController extends BaseController
         $fileId    = is_null($fileId) ? $this->request->getPost('f_id') : $fileId;
         $biblio_id = is_null($biblio_id) ? $this->request->getPost('b_id') : $biblio_id;
 
+        $internal  = func_num_args() > 0;
+
         $loadModel = new BibliographyModel();
         $hasil = $loadModel->attDelete($biblio_id, $fileId);
         $return = 1;
@@ -345,7 +318,12 @@ class BibliographyController extends BaseController
             slim_alert('error', 'Data failed to delete');
             $return = 0;
         }
-        echo json_encode($return);
+        // Saat dipanggil dari delete() jangan menulis ke output (dulu mencemari respons JSON).
+        if ($internal) {
+            return $return;
+        }
+
+        return $this->response->setJSON($return);
     }
 
     public function getAttachment()
@@ -406,17 +384,11 @@ class BibliographyController extends BaseController
         
         // Handle file upload if a new file is provided
         $user = $this->session->user_id;
-        $file = $this->request->getFile('edit_attc_file');
-        if ($file && $file->isValid() && !$file->hasMoved()) {
-            $config = $this->_configBerkas($file->getName(), $user . $biblioId, 'attachment', 0);
-            $fileName = $config['file_name'];
-            $filePath = $config['upload_path'];
-            $file->move($filePath, $fileName);
-            $data['file_name'] = $fileName;
-            $data['file_dir'] = $filePath;
-            $data['mime_type'] = $file->getMimeType();
+        $stored = $this->_storeAttachment($this->request->getFile('edit_attc_file'));
+        if ($stored !== null) {
+            $data = $stored + $data;
         }
-        
+
         $loadModel = new BibliographyModel();
         $updatedFile = false;
         $updatedBiblioFile = false;
@@ -460,43 +432,43 @@ class BibliographyController extends BaseController
     }
 
 
-    private function _configBerkas($file, $user, $ket = null, $i = null)
+    /**
+     * Simpan sampul dokumen ke public/uploads/images/docs. Null bila tidak ada/ditolak.
+     */
+    private function _storeCover(): ?string
     {
-        $index = 0;
-        if (!is_null($i)) {
-            if ($i > 0) {
-                $index = $i;
-            }
+        $uploader = new SecureUpload();
+        $name     = $uploader->storeImage($this->request->getFile('image'), FCPATH . 'uploads/images/docs', 'cover', 2048);
+        if ($uploader->getError() !== null) {
+            slim_alert('error', 'Sampul ditolak: ' . $uploader->getError());
         }
 
-        $config = [];
-        $ext    = pathinfo($file, PATHINFO_EXTENSION);
-        if (!is_null($ket)) {
-            $path = 'uploads/repository';
-            if (!is_dir('./' . $path)) {
-                mkdir('./' . $path, 0777, TRUE);
-            }
-            // atthacment
-            $save = 'B_' . $user . '_' . $ket . '-' . $this->datetime . '-' . $index . '.' . $ext;
+        return $name;
+    }
 
-            $config['allowed_types'] = 'pdf';
-            $config['max_size']      = '51200';
-            $config['upload_path']   = './' . $path;
-        } else {
-            $path = 'uploads/images/docs';
-            if (!is_dir('./' . $path)) {
-                mkdir('./' . $path, 0777, TRUE);
-            }
-            // imange doc
-            $save = 'cover_' . $user . '-' . $this->datetime . '-' . $index . '.' . $ext;
-
-            $config['allowed_types'] = 'png|jpg|jpeg';
-            $config['max_size']      = '500';
-            $config['upload_path']   = './' . $path;
+    /**
+     * Simpan lampiran PDF ke writable/uploads/repository (tidak dapat diakses langsung dari web).
+     * Berkas disajikan lewat BerandaController::file() yang memeriksa hak akses.
+     *
+     * @return array{file_name:string,file_dir:string,mime_type:string}|null
+     */
+    private function _storeAttachment($file): ?array
+    {
+        if (! $file instanceof \CodeIgniter\HTTP\Files\UploadedFile) {
+            return null;
         }
-        $config['file_name'] = $save;
+        $uploader = new SecureUpload();
+        $name     = $uploader->storePdf($file, WRITEPATH . 'uploads/repository', 'att', 51200);
+        if ($uploader->getError() !== null) {
+            slim_alert('error', 'Lampiran ditolak: ' . $uploader->getError());
 
-        return $config;
+            return null;
+        }
+        if ($name === null) {
+            return null;
+        }
+
+        return ['file_name' => $name, 'file_dir' => 'repository', 'mime_type' => 'application/pdf'];
     }
 
 
@@ -511,7 +483,7 @@ class BibliographyController extends BaseController
             try {
                 // Attempt to delete associated image
                 if (!empty($list_biblio['image'])) {
-                    $hapusImage = delImage('images\docs', $list_biblio['image']);
+                    $hapusImage = delImage('images/docs', $list_biblio['image']);
                     if ($hapusImage == 0 || $hapusImage == '-1') {
                         log_message('error', 'File Not Exist for biblio_id: ' . $biblio_id);
                     }
@@ -543,6 +515,9 @@ class BibliographyController extends BaseController
                 // Delete the main biblio record
                 $deleted = $this->db->table('biblio')->where(['biblio_id' => $biblio_id])->delete();
 
+                $this->db->table('biblio_count')->where(['biblio_id' => $biblio_id])->delete();
+                (new IndexBiblioModel())->reindexOne((int) $biblio_id);
+
                 if ($deleted) {
                     $response = ['status' => 'success', 'message' => 'Record deleted successfully', 'id' => $biblio_id];
                 } else {
@@ -563,7 +538,12 @@ class BibliographyController extends BaseController
         $db    = \Config\Database::connect();
         $now   = date('Y-m-d');
         $name  = $this->request->getPost('name');
-        $tbl   = $this->request->getPost('tbl');
+        $tbl   = (string) $this->request->getPost('tbl');
+        // Nama tabel tidak boleh berasal langsung dari input pengguna: gunakan whitelist.
+        $allowedTables = ['author', 'supervisor', 'examiner', 'contributor', 'topic', 'publisher', 'place', 'language', 'item_type', 'gmd', 'license', 'copyright', 'frequency', 'location', 'coll_type'];
+        if (! in_array($tbl, $allowedTables, true)) {
+            return $this->response->setStatusCode(400)->setJSON(['status' => 'error', 'message' => 'Jenis data tidak valid.']);
+        }
         $optFor = ucwords(strtolower(str_replace('_', ' ', $tbl)));
         $rules = [
             'name' => 'required|alpha_space',

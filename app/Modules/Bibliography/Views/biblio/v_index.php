@@ -26,12 +26,12 @@
                 ?>
                     <tr>
                         <td><?= $i++; ?></td>
-                        <td><?= $val->title ?></td>
-                        <td><?= $val->publish_year; ?></td>
-                        <td><?= $val->last_update ?></td>
+                        <td><?= esc($val->title) ?></td>
+                        <td><?= esc($val->publish_year) ?></td>
+                        <td><?= esc($val->last_update) ?></td>
                         <td class="btn-group">
                             <a class="btn btn-sm btn-primary" href="<?= base_url("bibliography/edit/?bbi=" . slim_encrypt($val->biblio_id)) ?>">Edit</a>
-                            <button type="button" class="btn btn-sm btn-danger" onclick="showConfirm(<?= $val->biblio_id ?>)">Delete</button>
+                            <button type="button" class="btn btn-sm btn-danger" onclick="showConfirm(<?= esc($val->biblio_id) ?>)">Delete</button>
                         </td>
                     </tr>
                 <?php endforeach ?>
