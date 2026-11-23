@@ -1,0 +1,83 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    name: Lint PHP ${{ matrix.php }}
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php: ['8.1', '8.2', '8.3', '8.4']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          coverage: none
+      - name: php -l
+        run: find app tests public/index.php -name '*.php' -print0 | xargs -0 -n1 -P4 php -l | (! grep -v '^No syntax errors')
+
+  unit:
+    name: PHPUnit (PHP ${{ matrix.php }})
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        php: ['8.2', '8.3']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: ${{ matrix.php }}
+          extensions: intl, mbstring, mysqli
+          coverage: none
+      - uses: ramsey/composer-install@v3
+      - run: vendor/bin/phpunit --no-coverage
+
+  e2e:
+    name: Instalasi & smoke test end-to-end
+    runs-on: ubuntu-latest
+    services:
+      mariadb:
+        image: mariadb:10.11
+        env:
+          MARIADB_ROOT_PASSWORD: root
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="healthcheck.sh --connect --innodb_initialized"
+          --health-interval=5s --health-timeout=5s --health-retries=20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.2'
+          extensions: intl, mbstring, mysqli, gd, fileinfo
+          coverage: none
+      - uses: ramsey/composer-install@v3
+        with:
+          composer-options: --no-dev
+      - name: Pasang mysql client & xmllint
+        run: sudo apt-get update -q && sudo apt-get install -y -q mariadb-client libxml2-utils
+      - name: Jalankan server
+        run: |
+          php -S 127.0.0.1:8080 -t public system/rewrite.php > /tmp/server.log 2>&1 &
+          sleep 2
+      - name: Smoke test
+        env:
+          BASE: http://127.0.0.1:8080
+          DB_HOST: 127.0.0.1
+          DB_USER: root
+          DB_PASS: root
+          DB_NAME: rangkui_e2e
+        run: bash tests/e2e/smoke.sh
+      - name: Log bila gagal
+        if: failure()
+        run: |
+          tail -n 50 /tmp/server.log || true
+          cat writable/logs/*.log 2>/dev/null | tail -n 100 || true

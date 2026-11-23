@@ -1,36 +1,39 @@
+# Rangkui — perintah bantu pengembangan
+# Pemakaian: make <target>
 
-# Mendefinisikan variabel untuk menyimpan nama branch saat ini
-BRANCH_NAME := $(shell git rev-parse --abbrev-ref HEAD)
+PORT ?= 8080
+BRANCH_NAME := $(shell git rev-parse --abbrev-ref HEAD 2>/dev/null)
 
-# Target contoh untuk menunjukkan bagaimana variabel digunakan
+.PHONY: help install serve test lint check clear release print-branch pull push
+
+help: ## Tampilkan daftar perintah
+	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-14s\033[0m %s\n", $$1, $$2}'
+
+install: ## Pasang dependensi Composer
+	composer install
+
+serve: ## Jalankan server pengembangan (http://localhost:$(PORT))
+	php spark serve --port $(PORT)
+
+test: ## Jalankan PHPUnit
+	vendor/bin/phpunit
+
+lint: ## Periksa sintaks semua berkas PHP aplikasi
+	@find app tests -name '*.php' -print0 | xargs -0 -n1 -P4 php -l | grep -v '^No syntax errors' || true
+
+check: lint test ## Lint + tes
+
+clear: ## Bersihkan cache aplikasi
+	php spark cache:clear
+
+release: ## Bangun zip rilis (dengan vendor/) ke dist/
+	bash .github/scripts/build-release.sh $(shell git describe --tags --always)
+
 print-branch:
 	@echo "Current branch is: $(BRANCH_NAME)"
-
-run :
-	@php spark serve
 
 pull:
 	git pull origin $(BRANCH_NAME)
 
 push:
 	git push origin $(BRANCH_NAME)
-
-clear:
-	@php spark cache:clear
-
-# Rule untuk git pull dengan branch dinamis
-pulls:
-	@if [ -z "$(branch)" ]; then \
-		if [ "$(filter pull,%)" != "pull" ]; then \
-			echo "Error: Branch name is required. Usage: make pull branch_name"; \
-			exit 1; \
-		fi \
-	fi
-	git pull origin $(branch)
-
-# Menangkap branch name dari argumen
-branch=$(word 2,$(MAKECMDGOALS))
-
-# Mencegah make salah menginterpretasi branch sebagai target
-%:
-	@:

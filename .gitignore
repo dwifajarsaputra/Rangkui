@@ -1,45 +1,40 @@
-# Environment
+# Konfigurasi lokal (dibuat oleh wizard instalasi)
 .env
 
-# System
+# Dependensi Composer: jalankan `composer install`, atau unduh zip rilis yang sudah berisi vendor/
+/vendor/
+
+# Sistem operasi / editor
 .DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
 
-# Writable directories
-writable/cache/*
-!writable/cache/.gitkeep
+# Folder writable: simpan struktur, abaikan isi
+/writable/cache/*
+/writable/logs/*
+/writable/session/*
+/writable/backup/*
+/writable/uploads/repository/*
+/writable/debugbar/*
+/writable/installed.lock
+!/writable/**/.gitkeep
+!/writable/**/.htaccess
 
-writable/debugbar/*.json
+# Unggahan pengguna di public/ (struktur & proteksi tetap dilacak)
+/public/uploads/**
+!/public/uploads/**/
+!/public/uploads/**/.gitkeep
+!/public/uploads/**/index.php
+!/public/uploads/**/index.html
+!/public/uploads/.htaccess
+!/public/uploads/repository/.htaccess
+!/public/uploads/images/default/**
 
-writable/logs/*.log
-
-writable/session/*
-!writable/session/.gitkeep
-
-writable/upload/*
-!writable/upload/.gitkeep
-
-# Uploads (ignore all files but keep structure with .gitkeep)
-public/uploads/*
-!public/uploads/.gitkeep
-
-# Re-include known folders and .gitkeep
-public/uploads/person/
-!public/uploads/person/.gitkeep
-
-public/uploads/biblio/
-!public/uploads/biblio/.gitkeep
-
-public/uploads/repository/
-!public/uploads/repository/.gitkeep
-
-public/uploads/images/
-!public/uploads/images/.gitkeep
-
-public/uploads/images/docs/
-!public/uploads/images/docs/.gitkeep
-
-public/uploads/images/sliders/
-!public/uploads/images/sliders/.gitkeep
-
-# Catch-all: track .gitkeep everywhere
-!.gitkeep
+# Hasil build & tes
+/build/
+/dist/
+.phpunit.cache/
+.phpunit.result.cache
+/phpunit.xml

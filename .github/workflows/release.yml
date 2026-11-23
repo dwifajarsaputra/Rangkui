@@ -1,0 +1,28 @@
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+          extensions: intl, mbstring
+          coverage: none
+      - name: Bangun paket siap pasang (berisi vendor/)
+        run: bash .github/scripts/build-release.sh "${GITHUB_REF_NAME}"
+      - name: Terbitkan rilis
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          NOTES=$(awk -v v="${GITHUB_REF_NAME#v}" '$0 ~ "^## \\[" v "\\]" {f=1; next} /^## \[/ {f=0} f' CHANGELOG.md)
+          gh release create "${GITHUB_REF_NAME}" dist/*.zip dist/*.sha256 \
+            --title "Rangkui ${GITHUB_REF_NAME}" --notes "${NOTES:-Lihat CHANGELOG.md}"
